@@ -1,6 +1,6 @@
 ---
 title: Vehicle purchase fields and employee edit/delete
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [vehicles, employees, ui]
@@ -15,11 +15,11 @@ User requested:
 - Add employee edit and soft-delete capabilities.
 
 ## Checklist
-- [ ] Add Purchase price and Purchase date inputs to `src/pages/vehicles/[id]/edit.tsx`
-- [ ] Add `profileService.softDelete` in `src/services/fleetService.ts`
-- [ ] Create `src/pages/employees/[id]/edit.tsx`
-- [ ] Add edit/delete links/buttons in `src/pages/employees/index.tsx`
-- [ ] Run build check
+- [x] Add Purchase price and Purchase date inputs to `src/pages/vehicles/[id]/edit.tsx`
+- [x] Add `profileService.softDelete` in `src/services/fleetService.ts`
+- [x] Create `src/pages/employees/[id]/edit.tsx`
+- [x] Add edit/delete links/buttons in `src/pages/employees/index.tsx`
+- [x] Run build check
 
 ## Acceptance
 - Admin can edit Purchase price and Purchase date on a vehicle.
