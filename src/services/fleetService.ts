@@ -1,15 +1,18 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/database.types";
 
+export type Role = "admin" | "director" | "employee";
 export type Vehicle = Tables<"vehicles">;
 export type VehicleInsert = TablesInsert<"vehicles">;
 export type VehicleUpdate = TablesUpdate<"vehicles">;
 export type Profile = Tables<"profiles">;
+export type Employee = Profile;
 export type Assignment = Tables<"assignments">;
 export type Maintenance = Tables<"maintenance">;
 export type FuelLog = Tables<"fuel_log">;
 export type Incident = Tables<"incidents">;
 export type Document = Tables<"documents">;
+export type FleetDocument = Document;
 
 export const vehicleService = {
   async list(activeOnly = true) {
@@ -40,17 +43,19 @@ export const profileService = {
     let q = supabase.from("profiles").select("*").order("full_name");
     if (activeOnly) q = q.eq("is_active", true);
     const { data, error } = await q;
-    return { data: (data ?? []) as Profile[], error };
+    return { data: (data ?? []) as Employee[], error };
   },
   async get(id: string) {
     const { data, error } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-    return { data: data as Profile | null, error };
+    return { data: data as Employee | null, error };
   },
   async update(id: string, values: TablesUpdate<"profiles">) {
     const { data, error } = await supabase.from("profiles").update(values).eq("id", id).select().single();
-    return { data: data as Profile | null, error };
+    return { data: data as Employee | null, error };
   },
 };
+
+export const employeeService = profileService;
 
 export const assignmentService = {
   async list() {
@@ -58,7 +63,7 @@ export const assignmentService = {
       .from("assignments")
       .select("*, vehicle:vehicles(*), employee:profiles(*)")
       .order("created_at", { ascending: false });
-    return { data: (data ?? []) as unknown as (Assignment & { vehicle: Vehicle; employee: Profile })[], error };
+    return { data: (data ?? []) as unknown as (Assignment & { vehicle: Vehicle; employee: Employee })[], error };
   },
   async create(values: TablesInsert<"assignments">) {
     const { data, error } = await supabase.from("assignments").insert(values).select().single();
@@ -99,7 +104,7 @@ export const fuelService = {
       .from("fuel_log")
       .select("*, vehicle:vehicles(vehicle_id, make, model), driver:profiles(full_name)")
       .order("fuel_date", { ascending: false });
-    return { data: (data ?? []) as unknown as (FuelLog & { vehicle: Pick<Vehicle, "vehicle_id" | "make" | "model">; driver: Pick<Profile, "full_name"> })[], error };
+    return { data: (data ?? []) as unknown as (FuelLog & { vehicle: Pick<Vehicle, "vehicle_id" | "make" | "model">; driver: Pick<Employee, "full_name">; driver_name?: string })[], error };
   },
   async create(values: TablesInsert<"fuel_log">) {
     const { data, error } = await supabase.from("fuel_log").insert(values).select().single();
@@ -113,7 +118,7 @@ export const incidentService = {
       .from("incidents")
       .select("*, vehicle:vehicles(vehicle_id, make, model), reporter:profiles(full_name)")
       .order("created_at", { ascending: false });
-    return { data: (data ?? []) as unknown as (Incident & { vehicle: Pick<Vehicle, "vehicle_id" | "make" | "model">; reporter: Pick<Profile, "full_name"> })[], error };
+    return { data: (data ?? []) as unknown as (Incident & { vehicle: Pick<Vehicle, "vehicle_id" | "make" | "model">; reporter: Pick<Employee, "full_name">; incident_date?: string })[], error };
   },
   async create(values: TablesInsert<"incidents">) {
     const { data, error } = await supabase.from("incidents").insert(values).select().single();
@@ -131,7 +136,7 @@ export const documentService = {
       .from("documents")
       .select("*, vehicle:vehicles(vehicle_id, make, model), employee:profiles(full_name)")
       .order("created_at", { ascending: false });
-    return { data: (data ?? []) as unknown as (Document & { vehicle: Pick<Vehicle, "vehicle_id" | "make" | "model"> | null; employee: Pick<Profile, "full_name"> | null })[], error };
+    return { data: (data ?? []) as unknown as (Document & { vehicle: Pick<Vehicle, "vehicle_id" | "make" | "model"> | null; employee: Pick<Employee, "full_name"> | null })[], error };
   },
   async create(values: TablesInsert<"documents">) {
     const { data, error } = await supabase.from("documents").insert(values).select().single();

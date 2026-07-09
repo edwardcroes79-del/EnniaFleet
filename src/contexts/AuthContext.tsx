@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Profile fetch error:", error.message);
       return;
     }
-    setProfile(data);
+    setProfile(data as Profile | null);
   };
 
   useEffect(() => {
