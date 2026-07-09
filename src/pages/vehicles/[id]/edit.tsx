@@ -73,6 +73,8 @@ function EditVehiclePage() {
                 </Select>
               </div>
               <div><Label>Mileage</Label><Input type="number" value={vehicle.mileage ?? 0} onChange={(e) => set("mileage", parseInt(e.target.value || "0"))} /></div>
+              <div><Label>Purchase date</Label><Input type="date" value={vehicle.purchase_date ?? ""} onChange={(e) => set("purchase_date", e.target.value || null)} /></div>
+              <div><Label>Purchase price</Label><Input type="number" value={vehicle.purchase_price ?? ""} onChange={(e) => set("purchase_price", e.target.value ? parseFloat(e.target.value) : null)} /></div>
               <div><Label>Status</Label>
                 <Select value={vehicle.status ?? "Available"} onValueChange={(v) => set("status", v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>

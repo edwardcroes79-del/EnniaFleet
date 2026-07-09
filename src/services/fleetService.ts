@@ -62,6 +62,9 @@ export const profileService = {
     const { data, error } = await supabase.from("profiles").update(values).eq("id", id).select().single();
     return { data: data as Employee | null, error };
   },
+  async softDelete(id: string) {
+    return await supabase.from("profiles").update({ is_active: false }).eq("id", id);
+  },
 };
 
 export const employeeService = profileService;
