@@ -19,7 +19,8 @@ const initial = {
   email: "",
   license_number: "",
   license_expiry: "",
-  emergency_contact: "",
+  emergency_contact_name: "",
+  emergency_contact_phone: "",
 };
 
 function NewEmployeePage() {
@@ -34,8 +35,18 @@ function NewEmployeePage() {
     e.preventDefault();
     setSaving(true);
     const { error } = await employeeService.create({
-      ...values,
+      employee_id: values.employee_id,
+      full_name: values.full_name,
+      department: values.department || null,
+      position: values.position || null,
+      phone: values.phone || null,
+      email: values.email || null,
+      license_number: values.license_number || null,
       license_expiry: values.license_expiry || null,
+      emergency_contact_name: values.emergency_contact_name || null,
+      emergency_contact_phone: values.emergency_contact_phone || null,
+      role: "employee",
+      is_active: true,
     } as any);
     setSaving(false);
     if (error) toast({ title: "Could not create employee", description: error.message, variant: "destructive" });
@@ -61,7 +72,8 @@ function NewEmployeePage() {
               <div><Label htmlFor="email">Email</Label><Input id="email" type="email" value={values.email} onChange={(e) => set("email", e.target.value)} /></div>
               <div><Label htmlFor="license_number">Driver's license number</Label><Input id="license_number" value={values.license_number} onChange={(e) => set("license_number", e.target.value)} /></div>
               <div><Label htmlFor="license_expiry">License expiration</Label><Input id="license_expiry" type="date" value={values.license_expiry} onChange={(e) => set("license_expiry", e.target.value)} /></div>
-              <div className="sm:col-span-2"><Label htmlFor="emergency">Emergency contact</Label><Input id="emergency" value={values.emergency_contact} onChange={(e) => set("emergency_contact", e.target.value)} /></div>
+              <div><Label htmlFor="emergency_name">Emergency contact name</Label><Input id="emergency_name" value={values.emergency_contact_name} onChange={(e) => set("emergency_contact_name", e.target.value)} /></div>
+              <div><Label htmlFor="emergency_phone">Emergency contact phone</Label><Input id="emergency_phone" type="tel" value={values.emergency_contact_phone} onChange={(e) => set("emergency_contact_phone", e.target.value)} /></div>
             </CardContent>
           </Card>
           <div className="mt-6 flex gap-3">
