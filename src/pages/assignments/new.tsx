@@ -10,10 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { vehicleService, employeeService, assignmentService, type Vehicle, type Employee } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 function NewAssignmentPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -32,23 +34,44 @@ function NewAssignmentPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!profile) {
+      toast({ title: "Not signed in", description: "Please log in again.", variant: "destructive" });
+      return;
+    }
+    if (!vehicleId || !employeeId || !assignedDate) {
+      toast({ title: "Missing fields", description: "Vehicle, employee, and assignment date are required.", variant: "destructive" });
+      return;
+    }
+
     setSaving(true);
-    const { error } = await assignmentService.create({
-      vehicle_id: vehicleId,
-      employee_id: employeeId,
-      assigned_date: assignedDate,
-      expected_return_date: expectedReturn || null,
-      odometer_out: odometerOut ? parseInt(odometerOut) : null,
-      fuel_level_out: fuelLevelOut,
-      condition_comments: comments,
-      status: "Active",
-    } as any);
-    if (!error) await vehicleService.update(vehicleId, { status: "Assigned" });
-    setSaving(false);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else {
+    try {
+      const { error } = await assignmentService.create({
+        vehicle_id: vehicleId,
+        employee_id: employeeId,
+        assigned_by: profile.id,
+        assigned_date: assignedDate,
+        expected_return_date: expectedReturn || null,
+        odometer_issue: odometerOut ? parseInt(odometerOut) : null,
+        fuel_level_issue: fuelLevelOut,
+        condition_comments: comments || null,
+        is_active: true,
+      });
+      if (error) throw error;
+
+      const { error: vehicleErr } = await vehicleService.update(vehicleId, { status: "Assigned" });
+      if (vehicleErr) throw vehicleErr;
+
       toast({ title: "Assignment created" });
       router.push("/assignments");
+    } catch (err) {
+      console.error("Create assignment error:", err);
+      toast({
+        title: "Could not create assignment",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
