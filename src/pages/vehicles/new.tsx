@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { vehicleService } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const initial = {
   vehicle_id: "",
@@ -34,6 +35,7 @@ const initial = {
 function NewVehiclePage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [values, setValues] = useState(initial);
 
@@ -41,23 +43,56 @@ function NewVehiclePage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!profile) {
+      toast({ title: "Not signed in", description: "Please log in again.", variant: "destructive" });
+      return;
+    }
+
+    if (!values.vehicle_id.trim() || !values.license_plate.trim() || !values.make.trim() || !values.model.trim()) {
+      toast({ title: "Missing fields", description: "Vehicle ID, license plate, make, and model are required.", variant: "destructive" });
+      return;
+    }
+
     setSaving(true);
-    const { error } = await vehicleService.create({
-      ...values,
-      year: values.year ?? null,
-      purchase_price: values.purchase_price ?? null,
-      purchase_date: values.purchase_date || null,
-      insurance_expiry: values.insurance_expiry || null,
-      registration_expiry: values.registration_expiry || null,
-      service_due_date: values.service_due_date || null,
-      is_deleted: false,
-    } as any);
-    setSaving(false);
-    if (error) {
-      toast({ title: "Could not create vehicle", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Vehicle created" });
-      router.push("/vehicles");
+    try {
+      const payload = {
+        vehicle_id: values.vehicle_id.trim(),
+        license_plate: values.license_plate.trim(),
+        vin: values.vin.trim() || null,
+        make: values.make.trim(),
+        model: values.model.trim(),
+        year: values.year ?? null,
+        color: values.color.trim() || null,
+        fuel_type: values.fuel_type,
+        transmission: values.transmission,
+        mileage: values.mileage ?? 0,
+        purchase_date: values.purchase_date || null,
+        purchase_price: values.purchase_price ?? null,
+        status: values.status,
+        insurance_expiry: values.insurance_expiry || null,
+        registration_expiry: values.registration_expiry || null,
+        service_due_date: values.service_due_date || null,
+        notes: values.notes.trim() || null,
+        is_deleted: false,
+      };
+      const { error } = await vehicleService.create(payload as any);
+      if (error) {
+        console.error("Create vehicle error:", error);
+        toast({ title: "Could not create vehicle", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Vehicle created" });
+        router.push("/vehicles");
+      }
+    } catch (err) {
+      console.error("Create vehicle exception:", err);
+      toast({
+        title: "Unexpected error",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -69,11 +104,11 @@ function NewVehiclePage() {
           <Card>
             <CardHeader><CardTitle className="text-base">Vehicle details</CardTitle></CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div><Label htmlFor="vehicle_id">Vehicle ID</Label><Input id="vehicle_id" required value={values.vehicle_id} onChange={(e) => set("vehicle_id", e.target.value)} /></div>
-              <div><Label htmlFor="plate">License plate</Label><Input id="plate" required value={values.license_plate} onChange={(e) => set("license_plate", e.target.value)} /></div>
+              <div><Label htmlFor="vehicle_id">Vehicle ID *</Label><Input id="vehicle_id" required value={values.vehicle_id} onChange={(e) => set("vehicle_id", e.target.value)} /></div>
+              <div><Label htmlFor="plate">License plate *</Label><Input id="plate" required value={values.license_plate} onChange={(e) => set("license_plate", e.target.value)} /></div>
               <div className="sm:col-span-2"><Label htmlFor="vin">VIN</Label><Input id="vin" value={values.vin} onChange={(e) => set("vin", e.target.value)} /></div>
-              <div><Label htmlFor="make">Make</Label><Input id="make" required value={values.make} onChange={(e) => set("make", e.target.value)} /></div>
-              <div><Label htmlFor="model">Model</Label><Input id="model" required value={values.model} onChange={(e) => set("model", e.target.value)} /></div>
+              <div><Label htmlFor="make">Make *</Label><Input id="make" required value={values.make} onChange={(e) => set("make", e.target.value)} /></div>
+              <div><Label htmlFor="model">Model *</Label><Input id="model" required value={values.model} onChange={(e) => set("model", e.target.value)} /></div>
               <div><Label htmlFor="year">Year</Label><Input id="year" type="number" value={values.year ?? ""} onChange={(e) => set("year", e.target.value ? parseInt(e.target.value) : undefined)} /></div>
               <div><Label htmlFor="color">Color</Label><Input id="color" value={values.color} onChange={(e) => set("color", e.target.value)} /></div>
               <div>
@@ -94,7 +129,7 @@ function NewVehiclePage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label htmlFor="mileage">Mileage</Label><Input id="mileage" type="number" required value={values.mileage} onChange={(e) => set("mileage", parseInt(e.target.value || "0"))} /></div>
+              <div><Label htmlFor="mileage">Mileage</Label><Input id="mileage" type="number" value={values.mileage} onChange={(e) => set("mileage", parseInt(e.target.value || "0"))} /></div>
               <div><Label htmlFor="purchase_date">Purchase date</Label><Input id="purchase_date" type="date" value={values.purchase_date} onChange={(e) => set("purchase_date", e.target.value)} /></div>
               <div><Label htmlFor="purchase_price">Purchase price</Label><Input id="purchase_price" type="number" value={values.purchase_price ?? ""} onChange={(e) => set("purchase_price", e.target.value ? parseFloat(e.target.value) : undefined)} /></div>
               <div>
