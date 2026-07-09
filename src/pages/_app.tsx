@@ -1,5 +1,5 @@
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeProvider } from "@/contexts/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
