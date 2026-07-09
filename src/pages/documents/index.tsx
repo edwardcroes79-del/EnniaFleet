@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { documentService, type DocumentWithRelations } from "@/services/fleetService";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function DocumentsPage() {
@@ -41,11 +41,12 @@ function DocumentsPage() {
                   <TableHead>Title</TableHead>
                   <TableHead>Expiry</TableHead>
                   <TableHead>File</TableHead>
+                  <TableHead className="w-24">Edit</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? <TableRow><TableCell colSpan={5} className="h-24 text-center">Loading…</TableCell></TableRow> :
-                rows.length === 0 ? <TableRow><TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No documents found.</TableCell></TableRow> :
+                {loading ? <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading…</TableCell></TableRow> :
+                rows.length === 0 ? <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No documents found.</TableCell></TableRow> :
                 rows.map((d) => (
                   <TableRow key={d.id}>
                     <TableCell><Badge variant="outline">{d.document_type}</Badge></TableCell>
@@ -53,6 +54,9 @@ function DocumentsPage() {
                     <TableCell>{d.title}</TableCell>
                     <TableCell>{d.expiry_date || "—"}</TableCell>
                     <TableCell>{d.file_url ? <a href={d.file_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary hover:underline"><FileText className="h-4 w-4" /> View</a> : "—"}</TableCell>
+                    <TableCell>
+                      <Link href={`/documents/${d.id}/edit`}><Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button></Link>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
