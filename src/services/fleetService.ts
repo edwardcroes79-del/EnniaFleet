@@ -70,7 +70,7 @@ export const assignmentService = {
   async list(): Promise<{ data: AssignmentWithRelations[]; error: Error | null }> {
     const { data, error } = await supabase
       .from("assignments")
-      .select("*, vehicle:vehicles(*), employee:profiles(*)")
+      .select("*, vehicle:vehicles(*), employee:profiles!employee_id(*)")
       .order("created_at", { ascending: false });
     return { data: (data ?? []) as unknown as AssignmentWithRelations[], error };
   },
@@ -111,7 +111,7 @@ export const fuelService = {
   async list(): Promise<{ data: FuelLogWithRelations[]; error: Error | null }> {
     const { data, error } = await supabase
       .from("fuel_log")
-      .select("*, vehicle:vehicles(vehicle_id, make, model), driver:profiles(full_name)")
+      .select("*, vehicle:vehicles(vehicle_id, make, model), driver:profiles!driver_id(full_name)")
       .order("fuel_date", { ascending: false });
     return { data: (data ?? []) as unknown as FuelLogWithRelations[], error };
   },
@@ -125,7 +125,7 @@ export const incidentService = {
   async list(): Promise<{ data: IncidentWithRelations[]; error: Error | null }> {
     const { data, error } = await supabase
       .from("incidents")
-      .select("*, vehicle:vehicles(vehicle_id, make, model), reporter:profiles(full_name)")
+      .select("*, vehicle:vehicles(vehicle_id, make, model), reporter:profiles!reporter_id(full_name)")
       .order("created_at", { ascending: false });
     return { data: (data ?? []) as unknown as IncidentWithRelations[], error };
   },
@@ -143,7 +143,7 @@ export const documentService = {
   async list(): Promise<{ data: DocumentWithRelations[]; error: Error | null }> {
     const { data, error } = await supabase
       .from("documents")
-      .select("*, vehicle:vehicles(vehicle_id, make, model), employee:profiles(full_name)")
+      .select("*, vehicle:vehicles(vehicle_id, make, model), employee:profiles!employee_id(full_name)")
       .order("created_at", { ascending: false });
     return { data: (data ?? []) as unknown as DocumentWithRelations[], error };
   },
