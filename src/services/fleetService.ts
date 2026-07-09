@@ -177,3 +177,17 @@ export const dashboardService = {
     return { data: (data ?? []), error };
   },
 };
+
+export const vehiclePhotoService = {
+  async upload(file: File, vehicleId: string): Promise<{ path: string | null; publicUrl: string | null; error: Error | null }> {
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${vehicleId}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("vehicle-photos").upload(path, file, {
+      cacheControl: "3600",
+      upsert: true,
+    });
+    if (error) return { path: null, publicUrl: null, error };
+    const { data } = supabase.storage.from("vehicle-photos").getPublicUrl(path);
+    return { path, publicUrl: data.publicUrl, error: null };
+  },
+};
