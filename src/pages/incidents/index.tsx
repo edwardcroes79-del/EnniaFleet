@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { incidentService, type Incident } from "@/services/fleetService";
+import { incidentService, type IncidentWithRelations } from "@/services/fleetService";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,7 +20,7 @@ function statusVariant(status: string) {
 }
 
 function IncidentsPage() {
-  const [rows, setRows] = useState<Incident[]>([]);
+  const [rows, setRows] = useState<IncidentWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -57,7 +57,7 @@ function IncidentsPage() {
                 rows.length === 0 ? <TableRow><TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No incidents found.</TableCell></TableRow> :
                 rows.map((i) => (
                   <TableRow key={i.id}>
-                    <TableCell>{i.incident_date}</TableCell>
+                    <TableCell>{i.incident_date || i.created_at.slice(0, 10)}</TableCell>
                     <TableCell className="font-mono">{i.vehicle?.vehicle_id || i.vehicle_id}</TableCell>
                     <TableCell>{i.incident_type}</TableCell>
                     <TableCell>{i.location || "—"}</TableCell>

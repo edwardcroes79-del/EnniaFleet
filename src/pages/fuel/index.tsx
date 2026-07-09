@@ -5,12 +5,12 @@ import { withAuth } from "@/components/withAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { fuelService, type FuelLog } from "@/services/fleetService";
+import { fuelService, type FuelLogWithRelations } from "@/services/fleetService";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function FuelPage() {
-  const [rows, setRows] = useState<FuelLog[]>([]);
+  const [rows, setRows] = useState<FuelLogWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -51,11 +51,11 @@ function FuelPage() {
                   <TableRow key={f.id}>
                     <TableCell>{f.fuel_date}</TableCell>
                     <TableCell className="font-mono">{f.vehicle?.vehicle_id || f.vehicle_id}</TableCell>
-                    <TableCell>{f.driver_name || f.employee?.full_name || "—"}</TableCell>
+                    <TableCell>{f.driver?.full_name || "—"}</TableCell>
                     <TableCell className="font-mono">{f.odometer?.toLocaleString() ?? "—"}</TableCell>
                     <TableCell>{f.liters ?? "—"}</TableCell>
                     <TableCell className="font-mono">${f.cost?.toLocaleString() ?? "—"}</TableCell>
-                    <TableCell>{f.station || "—"}</TableCell>
+                    <TableCell>{f.fuel_station || "—"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

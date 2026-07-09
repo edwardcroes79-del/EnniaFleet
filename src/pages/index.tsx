@@ -4,7 +4,7 @@ import { withAuth } from "@/components/withAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { vehicleService, maintenanceService, fuelService, assignmentService, type Vehicle, type Maintenance, type FuelLog, type Assignment } from "@/services/fleetService";
+import { vehicleService, maintenanceService, fuelService, assignmentService, type Vehicle, type MaintenanceWithVehicle, type FuelLogWithRelations, type AssignmentWithRelations } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
 import { Car, Users, Wrench, Fuel, AlertTriangle } from "lucide-react";
 import Link from "next/link";
@@ -38,9 +38,9 @@ function isOverdue(date: string | null) {
 function DashboardPage() {
   const { toast } = useToast();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [maintenance, setMaintenance] = useState<Maintenance[]>([]);
-  const [fuel, setFuel] = useState<FuelLog[]>([]);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [maintenance, setMaintenance] = useState<MaintenanceWithVehicle[]>([]);
+  const [fuel, setFuel] = useState<FuelLogWithRelations[]>([]);
+  const [assignments, setAssignments] = useState<AssignmentWithRelations[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {

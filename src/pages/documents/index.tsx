@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { documentService, type FleetDocument } from "@/services/fleetService";
+import { documentService, type DocumentWithRelations } from "@/services/fleetService";
 import { Plus, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function DocumentsPage() {
-  const [rows, setRows] = useState<FleetDocument[]>([]);
+  const [rows, setRows] = useState<DocumentWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 

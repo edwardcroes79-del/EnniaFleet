@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { maintenanceService, type Maintenance } from "@/services/fleetService";
+import { maintenanceService, type MaintenanceWithVehicle } from "@/services/fleetService";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function MaintenancePage() {
-  const [rows, setRows] = useState<Maintenance[]>([]);
+  const [rows, setRows] = useState<MaintenanceWithVehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 

@@ -5,15 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { vehicleService, maintenanceService, fuelService, assignmentService, type Vehicle, type Maintenance, type FuelLog, type Assignment } from "@/services/fleetService";
+import { vehicleService, maintenanceService, fuelService, assignmentService, type Vehicle, type MaintenanceWithVehicle, type FuelLogWithRelations, type AssignmentWithRelations } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
 
 function ReportsPage() {
   const { toast } = useToast();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [maintenance, setMaintenance] = useState<Maintenance[]>([]);
-  const [fuel, setFuel] = useState<FuelLog[]>([]);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [maintenance, setMaintenance] = useState<MaintenanceWithVehicle[]>([]);
+  const [fuel, setFuel] = useState<FuelLogWithRelations[]>([]);
+  const [assignments, setAssignments] = useState<AssignmentWithRelations[]>([]);
   const [report, setReport] = useState("utilization");
 
   useEffect(() => {

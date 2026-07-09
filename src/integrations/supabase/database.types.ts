@@ -254,6 +254,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          incident_date: string
           incident_type: string
           location: string | null
           photos: string[] | null
@@ -268,6 +269,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          incident_date?: string
           incident_type: string
           location?: string | null
           photos?: string[] | null
@@ -282,6 +284,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          incident_date?: string
           incident_type?: string
           location?: string | null
           photos?: string[] | null
