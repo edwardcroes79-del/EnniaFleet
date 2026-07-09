@@ -147,8 +147,16 @@ export const documentService = {
       .order("created_at", { ascending: false });
     return { data: (data ?? []) as unknown as DocumentWithRelations[], error };
   },
+  async get(id: string): Promise<{ data: Document | null; error: Error | null }> {
+    const { data, error } = await supabase.from("documents").select("*").eq("id", id).maybeSingle();
+    return { data: data as Document | null, error };
+  },
   async create(values: TablesInsert<"documents">): Promise<{ data: Document | null; error: Error | null }> {
     const { data, error } = await supabase.from("documents").insert(values).select().single();
+    return { data: data as Document | null, error };
+  },
+  async update(id: string, values: TablesUpdate<"documents">): Promise<{ data: Document | null; error: Error | null }> {
+    const { data, error } = await supabase.from("documents").update(values).eq("id", id).select().single();
     return { data: data as Document | null, error };
   },
 };
