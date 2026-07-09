@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { vehicleService } from "@/services/fleetService";
+import { vehicleService, vehiclePhotoService } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const initial = {
@@ -38,6 +38,7 @@ function NewVehiclePage() {
   const { profile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [values, setValues] = useState(initial);
+  const [photo, setPhoto] = useState<File | null>(null);
 
   const set = (key: keyof typeof values, value: unknown) => setValues((s) => ({ ...s, [key]: value }));
 
@@ -76,14 +77,30 @@ function NewVehiclePage() {
         notes: values.notes.trim() || null,
         is_deleted: false,
       };
-      const { error } = await vehicleService.create(payload as any);
-      if (error) {
+      const { data, error } = await vehicleService.create(payload as any);
+      if (error || !data) {
         console.error("Create vehicle error:", error);
-        toast({ title: "Could not create vehicle", description: error.message, variant: "destructive" });
+        toast({ title: "Could not create vehicle", description: error?.message || "Unknown error", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+
+      if (photo) {
+        const { publicUrl, error: uploadErr } = await vehiclePhotoService.upload(photo, data.id);
+        if (uploadErr || !publicUrl) {
+          toast({ title: "Vehicle created, but photo upload failed", description: uploadErr?.message || "Unknown error", variant: "destructive" });
+        } else {
+          const { error: updateErr } = await vehicleService.update(data.id, { photo_url: publicUrl });
+          if (updateErr) {
+            toast({ title: "Vehicle created, but photo URL not saved", description: updateErr.message, variant: "destructive" });
+          } else {
+            toast({ title: "Vehicle and photo created" });
+          }
+        }
       } else {
         toast({ title: "Vehicle created" });
-        router.push("/vehicles");
       }
+      router.push("/vehicles");
     } catch (err) {
       console.error("Create vehicle exception:", err);
       toast({
@@ -145,6 +162,18 @@ function NewVehiclePage() {
               <div><Label htmlFor="registration_expiry">Registration expiry</Label><Input id="registration_expiry" type="date" value={values.registration_expiry} onChange={(e) => set("registration_expiry", e.target.value)} /></div>
               <div><Label htmlFor="service_due">Service due</Label><Input id="service_due" type="date" value={values.service_due_date} onChange={(e) => set("service_due_date", e.target.value)} /></div>
               <div className="sm:col-span-2"><Label htmlFor="notes">Notes</Label><Input id="notes" value={values.notes} onChange={(e) => set("notes", e.target.value)} /></div>
+              <div className="sm:col-span-2">
+                <Label>Vehicle photo</Label>
+                <div className="mt-2 flex items-center gap-4">
+                  <Button asChild variant="outline" type="button">
+                    <label className="cursor-pointer">
+                      <Upload className="mr-2 h-4 w-4" /> Choose photo
+                      <input type="file" accept="image/*" className="sr-only" onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
+                    </label>
+                  </Button>
+                  <span className="text-sm text-muted-foreground">{photo ? photo.name : "No file chosen"}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
           <div className="mt-6 flex gap-3">

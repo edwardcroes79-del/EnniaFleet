@@ -6,9 +6,9 @@ import { withAuth } from "@/components/withAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { vehicleService, type Vehicle } from "@/services/fleetService";
+import { vehicleService, vehiclePhotoService, type Vehicle } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, Upload, Loader2 } from "lucide-react";
 
 function statusVariant(status: string) {
   switch (status) {
@@ -25,11 +25,35 @@ function VehicleDetailPage() {
   const { id } = router.query as { id: string };
   const { toast } = useToast();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
+  const load = () => {
     if (!id) return;
     vehicleService.get(id).then(({ data }) => setVehicle(data));
+  };
+
+  useEffect(() => {
+    load();
   }, [id]);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !id || !vehicle) return;
+    setUploading(true);
+    const { publicUrl, error } = await vehiclePhotoService.upload(file, id);
+    if (error || !publicUrl) {
+      toast({ title: "Upload failed", description: error?.message || "Unknown error", variant: "destructive" });
+    } else {
+      const { error: updateErr } = await vehicleService.update(id, { photo_url: publicUrl });
+      if (updateErr) {
+        toast({ title: "Could not save photo URL", description: updateErr.message, variant: "destructive" });
+      } else {
+        toast({ title: "Photo uploaded" });
+        load();
+      }
+    }
+    setUploading(false);
+  };
 
   const remove = async () => {
     if (!confirm("Soft-delete this vehicle?")) return;
@@ -60,16 +84,25 @@ function VehicleDetailPage() {
 
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="md:col-span-1">
-            <CardContent className="pt-6">
-              <div className="flex h-40 items-center justify-center rounded-md bg-muted text-muted-foreground">
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex h-48 items-center justify-center overflow-hidden rounded-md bg-muted text-muted-foreground">
                 {vehicle.photo_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={vehicle.photo_url} alt={vehicle.vehicle_id} className="h-full w-full object-cover rounded-md" />
+                  <img src={vehicle.photo_url} alt={vehicle.vehicle_id} className="h-full w-full object-cover" />
                 ) : (
-                  "No photo"
+                  <span>No photo</span>
                 )}
               </div>
-              <div className="mt-4 text-center">
+              <div className="flex items-center justify-center">
+                <Button asChild variant="outline" disabled={uploading}>
+                  <label className="cursor-pointer">
+                    {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                    {uploading ? "Uploading…" : "Upload photo"}
+                    <input type="file" accept="image/*" className="sr-only" onChange={handleFile} disabled={uploading} />
+                  </label>
+                </Button>
+              </div>
+              <div className="text-center">
                 <Badge variant={statusVariant(vehicle.status)} className="text-sm">{vehicle.status}</Badge>
               </div>
             </CardContent>
