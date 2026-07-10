@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSettings } from "@/contexts/SettingsProvider";
 import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -21,7 +21,6 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSettings } from "@/contexts/SettingsProvider";
 
 interface NavItem {
   label: string;

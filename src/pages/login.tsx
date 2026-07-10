@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSettings } from "@/contexts/SettingsProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ import Link from "next/link";
 
 export default function LoginPage() {
   const { signIn, isAuthenticated } = useAuth();
+  const { settings } = useSettings();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,8 +37,8 @@ export default function LoginPage() {
     }
   };
 
-  const companyName = "FleetCommand";
-  const logoUrl = undefined;
+  const companyName = settings?.company_name || "FleetCommand";
+  const logoUrl = settings?.logo_url;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
