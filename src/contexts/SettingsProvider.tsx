@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { settingsService, type AppSettings } from "@/services/settingsService";
 
+export type { AppSettings };
+
 interface SettingsContextType {
   settings: AppSettings | null;
   loading: boolean;
