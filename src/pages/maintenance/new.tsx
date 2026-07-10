@@ -68,7 +68,7 @@ function NewMaintenancePage() {
                 <Label>Service type</Label>
                 <Select value={serviceType} onValueChange={setServiceType}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{["Oil change", "Tire replacement", "Brake service", "General repair", "Annual inspection"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                  <SelectContent>{["Oil change", "Tire replacement", "Brake service", "General repair", "Small service", "General service", "Annual inspection"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
