@@ -15,6 +15,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          company_name: string
+          created_at: string | null
+          currency: string
+          id: string
+          logo_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_name?: string
+          created_at?: string | null
+          currency?: string
+          id?: string
+          logo_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_name?: string
+          created_at?: string | null
+          currency?: string
+          id?: string
+          logo_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       assignments: {
         Row: {
           actual_return_date: string | null
