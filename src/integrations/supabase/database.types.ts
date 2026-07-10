@@ -22,6 +22,8 @@ export type Database = {
           currency: string
           id: string
           logo_url: string | null
+          reminder_email_body: string
+          reminder_email_subject: string
           updated_at: string | null
         }
         Insert: {
@@ -30,6 +32,8 @@ export type Database = {
           currency?: string
           id?: string
           logo_url?: string | null
+          reminder_email_body?: string
+          reminder_email_subject?: string
           updated_at?: string | null
         }
         Update: {
@@ -38,6 +42,8 @@ export type Database = {
           currency?: string
           id?: string
           logo_url?: string | null
+          reminder_email_body?: string
+          reminder_email_subject?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -209,6 +215,38 @@ export type Database = {
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_reminders: {
+        Row: {
+          assignment_id: string
+          id: string
+          recipient_email: string
+          reminder_type: string
+          sent_at: string | null
+        }
+        Insert: {
+          assignment_id: string
+          id?: string
+          recipient_email: string
+          reminder_type?: string
+          sent_at?: string | null
+        }
+        Update: {
+          assignment_id?: string
+          id?: string
+          recipient_email?: string
+          reminder_type?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_reminders_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
             referencedColumns: ["id"]
           },
         ]
