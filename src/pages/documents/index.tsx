@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { withAuth } from "@/components/withAuth";
@@ -11,7 +12,10 @@ import { Plus, FileText, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function DocumentsPage() {
+  const router = useRouter();
+  const { vehicle_id, type } = router.query as { vehicle_id?: string; type?: string };
   const [rows, setRows] = useState<DocumentWithRelations[]>([]);
+  const [filtered, setFiltered] = useState<DocumentWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -22,6 +26,16 @@ function DocumentsPage() {
       setLoading(false);
     });
   }, [toast]);
+
+  useEffect(() => {
+    let list = rows;
+    if (vehicle_id) list = list.filter((d) => d.vehicle_id === vehicle_id);
+    if (type) list = list.filter((d) => d.document_type === type);
+    setFiltered(list);
+    if (vehicle_id && type && list.length === 1 && list[0].file_url) {
+      window.open(list[0].file_url, "_blank", "noopener,noreferrer");
+    }
+  }, [rows, vehicle_id, type]);
 
   return (
     <AppShell>
@@ -46,8 +60,8 @@ function DocumentsPage() {
               </TableHeader>
               <TableBody>
                 {loading ? <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading…</TableCell></TableRow> :
-                rows.length === 0 ? <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No documents found.</TableCell></TableRow> :
-                rows.map((d) => (
+                filtered.length === 0 ? <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No documents found.</TableCell></TableRow> :
+                filtered.map((d) => (
                   <TableRow key={d.id}>
                     <TableCell><Badge variant="outline">{d.document_type}</Badge></TableCell>
                     <TableCell className="font-mono">{d.vehicle?.vehicle_id || d.vehicle_id || "—"}</TableCell>

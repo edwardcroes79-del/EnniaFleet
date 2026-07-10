@@ -121,7 +121,15 @@ function VehicleDetailPage() {
               <div><p className="text-xs text-muted-foreground uppercase">Purchase date</p><p>{vehicle.purchase_date || "—"}</p></div>
               <div><p className="text-xs text-muted-foreground uppercase">Purchase price</p><p className="font-mono">{formatCurrency(vehicle.purchase_price)}</p></div>
               <div><p className="text-xs text-muted-foreground uppercase">Insurance provider</p><p>{vehicle.insurance_provider || "—"}</p></div>
-              <div><p className="text-xs text-muted-foreground uppercase">Insurance number</p><p className="font-mono">{vehicle.insurance_policy_number || "—"}</p></div>
+              <div><p className="text-xs text-muted-foreground uppercase">Insurance number</p>
+                {vehicle.insurance_policy_number ? (
+                  <Link href={`/documents?vehicle_id=${vehicle.id}&type=Insurance certificate`} className="font-mono text-primary hover:underline">
+                    {vehicle.insurance_policy_number}
+                  </Link>
+                ) : (
+                  <p className="font-mono">—</p>
+                )}
+              </div>
               <div><p className="text-xs text-muted-foreground uppercase">Insurance expiry</p><p>{vehicle.insurance_expiry || "—"}</p></div>
               <div><p className="text-xs text-muted-foreground uppercase">Registration expiry</p><p>{vehicle.registration_expiry || "—"}</p></div>
               <div><p className="text-xs text-muted-foreground uppercase">Service due</p><p>{vehicle.service_due_date || "—"}</p></div>
