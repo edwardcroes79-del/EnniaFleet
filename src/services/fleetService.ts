@@ -27,6 +27,14 @@ export type IncidentType = {
   updated_at: string;
 };
 
+export type MaintenanceType = {
+  id: string;
+  name: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export const vehicleService = {
   async list(activeOnly = true): Promise<{ data: Vehicle[]; error: Error | null }> {
     let q = supabase.from("vehicles").select("*").order("created_at", { ascending: false });
@@ -152,6 +160,25 @@ export const maintenanceService = {
   async update(id: string, values: TablesUpdate<"maintenance">): Promise<{ data: Maintenance | null; error: Error | null }> {
     const { data, error } = await supabase.from("maintenance").update(values).eq("id", id).select().single();
     return { data: data as Maintenance | null, error };
+  },
+};
+
+export const maintenanceTypeService = {
+  async list(): Promise<{ data: MaintenanceType[]; error: Error | null }> {
+    const { data, error } = await supabase
+      .from("maintenance_types")
+      .select("*")
+      .eq("is_active", true)
+      .order("name");
+    return { data: (data ?? []) as MaintenanceType[], error };
+  },
+  async create(name: string): Promise<{ data: MaintenanceType | null; error: Error | null }> {
+    const { data, error } = await supabase.from("maintenance_types").insert({ name }).select().single();
+    return { data: data as MaintenanceType | null, error };
+  },
+  async update(id: string, values: Partial<MaintenanceType>): Promise<{ data: MaintenanceType | null; error: Error | null }> {
+    const { data, error } = await supabase.from("maintenance_types").update(values).eq("id", id).select().single();
+    return { data: data as MaintenanceType | null, error };
   },
 };
 

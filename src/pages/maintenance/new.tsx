@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { vehicleService, maintenanceService, type Vehicle } from "@/services/fleetService";
+import { vehicleService, maintenanceService, maintenanceTypeService, type Vehicle, type MaintenanceType } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
@@ -16,8 +16,9 @@ function NewMaintenancePage() {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<MaintenanceType[]>([]);
   const [vehicleId, setVehicleId] = useState("");
-  const [serviceType, setServiceType] = useState("General repair");
+  const [serviceType, setServiceType] = useState("");
   const [serviceDate, setServiceDate] = useState("");
   const [provider, setProvider] = useState("");
   const [cost, setCost] = useState("");
@@ -26,7 +27,12 @@ function NewMaintenancePage() {
 
   useEffect(() => {
     vehicleService.list().then(({ data }) => setVehicles(data ?? []));
-  }, []);
+    maintenanceTypeService.list().then(({ data, error }) => {
+      if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+      setServiceTypes(data ?? []);
+      if (data && data.length > 0) setServiceType(data[0].name);
+    });
+  }, [toast]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +74,7 @@ function NewMaintenancePage() {
                 <Label>Service type</Label>
                 <Select value={serviceType} onValueChange={setServiceType}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{["Oil change", "Tire replacement", "Brake service", "General repair", "Small service", "General service", "Annual inspection"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                  <SelectContent>{serviceTypes.map((t) => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">

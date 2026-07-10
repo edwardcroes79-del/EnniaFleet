@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { settingsService, type AppSettings } from "@/services/settingsService";
-import { incidentTypeService, type IncidentType } from "@/services/fleetService";
+import { incidentTypeService, type IncidentType, maintenanceTypeService, type MaintenanceType } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X, Plus } from "lucide-react";
 
@@ -24,11 +24,20 @@ function AdminSettingsPage() {
   const [reminderBody, setReminderBody] = useState("");
   const [incidentTypes, setIncidentTypes] = useState<IncidentType[]>([]);
   const [newType, setNewType] = useState("");
+  const [maintenanceTypes, setMaintenanceTypes] = useState<MaintenanceType[]>([]);
+  const [newMaintenanceType, setNewMaintenanceType] = useState("");
 
   const loadTypes = () => {
     incidentTypeService.list().then(({ data, error }) => {
       if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
       else setIncidentTypes(data ?? []);
+    });
+  };
+
+  const loadMaintenanceTypes = () => {
+    maintenanceTypeService.list().then(({ data, error }) => {
+      if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+      else setMaintenanceTypes(data ?? []);
     });
   };
 
@@ -45,6 +54,7 @@ function AdminSettingsPage() {
         if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
       }),
       loadTypes(),
+      loadMaintenanceTypes(),
     ]).then(() => setLoading(false));
   }, [toast]);
 
@@ -97,6 +107,26 @@ function AdminSettingsPage() {
     else {
       toast({ title: "Incident type removed" });
       loadTypes();
+    }
+  };
+
+  const addMaintenanceType = async () => {
+    if (!newMaintenanceType.trim()) return;
+    const { data, error } = await maintenanceTypeService.create(newMaintenanceType.trim());
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else {
+      toast({ title: "Service type added" });
+      setNewMaintenanceType("");
+      loadMaintenanceTypes();
+    }
+  };
+
+  const removeMaintenanceType = async (id: string) => {
+    const { error } = await maintenanceTypeService.update(id, { is_active: false });
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else {
+      toast({ title: "Service type removed" });
+      loadMaintenanceTypes();
     }
   };
 
@@ -180,6 +210,31 @@ function AdminSettingsPage() {
                     <TableRow key={t.id}>
                       <TableCell>{t.name}</TableCell>
                       <TableCell><Button type="button" variant="ghost" size="icon" onClick={() => removeType(t.id)}><X className="h-4 w-4" /></Button></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <Card className="mt-6">
+            <CardHeader><CardTitle className="text-base">Maintenance service types</CardTitle></CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="flex gap-2">
+                <Input value={newMaintenanceType} onChange={(e) => setNewMaintenanceType(e.target.value)} placeholder="New service type" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMaintenanceType())} />
+                <Button type="button" onClick={addMaintenanceType}><Plus className="h-4 w-4" /></Button>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead className="w-24">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {maintenanceTypes.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell>{t.name}</TableCell>
+                      <TableCell><Button type="button" variant="ghost" size="icon" onClick={() => removeMaintenanceType(t.id)}><X className="h-4 w-4" /></Button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
