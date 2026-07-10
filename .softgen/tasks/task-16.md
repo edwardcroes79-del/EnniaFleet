@@ -1,6 +1,6 @@
 ---
 title: Dashboard vehicle cost and logo flash fix
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [dashboard, settings, logo]
@@ -10,15 +10,15 @@ position: 16
 ---
 
 ## Notes
-- Add a "Total vehicle cost" card on the dashboard summing vehicle purchase prices.
-- Fix the default logo/company name flash on load by loading settings once via a shared provider and bootstrapping initial settings server-side in _app.tsx.
+- Added a "Total vehicle cost" card on the dashboard summing vehicle purchase prices.
+- Fixed the default logo/company name flash on load by loading settings once via a shared provider and bootstrapping initial settings server-side in _app.tsx.
 
 ## Checklist
-- [ ] Add total vehicle cost computation and card to src/pages/index.tsx
-- [ ] Create SettingsProvider context with server-side initial settings
-- [ ] Update _app.tsx to use getInitialProps and SettingsProvider
-- [ ] Update AppShell and login.tsx to consume SettingsProvider
-- [ ] Run build check
+- [x] Add total vehicle cost computation and card to src/pages/index.tsx
+- [x] Create SettingsProvider context with server-side initial settings
+- [x] Update _app.tsx to use getInitialProps and SettingsProvider
+- [x] Update AppShell and login.tsx to consume SettingsProvider
+- [x] Run build check
 
 ## Acceptance
 - Dashboard shows total vehicle purchase cost.
