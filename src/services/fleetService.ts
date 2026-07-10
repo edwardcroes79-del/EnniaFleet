@@ -19,6 +19,14 @@ export type Document = Tables<"documents">;
 export type DocumentWithRelations = Document & { vehicle: Pick<Vehicle, "vehicle_id" | "make" | "model"> | null; employee: Pick<Employee, "full_name"> | null };
 export type FleetDocument = Document;
 
+export type IncidentType = {
+  id: string;
+  name: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export const vehicleService = {
   async list(activeOnly = true): Promise<{ data: Vehicle[]; error: Error | null }> {
     let q = supabase.from("vehicles").select("*").order("created_at", { ascending: false });
@@ -188,6 +196,39 @@ export const incidentService = {
   async update(id: string, values: TablesUpdate<"incidents">): Promise<{ data: Incident | null; error: Error | null }> {
     const { data, error } = await supabase.from("incidents").update(values).eq("id", id).select().single();
     return { data: data as Incident | null, error };
+  },
+};
+
+export const incidentTypeService = {
+  async list(): Promise<{ data: IncidentType[]; error: Error | null }> {
+    const { data, error } = await supabase
+      .from("incident_types")
+      .select("*")
+      .eq("is_active", true)
+      .order("name");
+    return { data: (data ?? []) as IncidentType[], error };
+  },
+  async create(name: string): Promise<{ data: IncidentType | null; error: Error | null }> {
+    const { data, error } = await supabase.from("incident_types").insert({ name }).select().single();
+    return { data: data as IncidentType | null, error };
+  },
+  async update(id: string, values: Partial<IncidentType>): Promise<{ data: IncidentType | null; error: Error | null }> {
+    const { data, error } = await supabase.from("incident_types").update(values).eq("id", id).select().single();
+    return { data: data as IncidentType | null, error };
+  },
+};
+
+export const incidentPhotoService = {
+  async upload(file: File): Promise<{ publicUrl: string | null; error: Error | null }> {
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("incident_photos").upload(path, file, {
+      cacheControl: "3600",
+      upsert: true,
+    });
+    if (error) return { publicUrl: null, error };
+    const { data } = supabase.storage.from("incident_photos").getPublicUrl(path);
+    return { publicUrl: data.publicUrl, error: null };
   },
 };
 
