@@ -232,6 +232,21 @@ export const incidentPhotoService = {
   },
 };
 
+export const incidentDocumentService = {
+  async upload(file: File): Promise<{ publicUrl: string | null; error: Error | null }> {
+    const ext = file.name.split(".").pop() || "pdf";
+    const path = `${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("incident_documents").upload(path, file, {
+      cacheControl: "3600",
+      upsert: true,
+      contentType: file.type || "application/pdf",
+    });
+    if (error) return { publicUrl: null, error };
+    const { data } = supabase.storage.from("incident_documents").getPublicUrl(path);
+    return { publicUrl: data.publicUrl, error: null };
+  },
+};
+
 export const documentService = {
   async list(): Promise<{ data: DocumentWithRelations[]; error: Error | null }> {
     const { data, error } = await supabase

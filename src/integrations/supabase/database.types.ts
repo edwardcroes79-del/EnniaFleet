@@ -342,6 +342,7 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string | null
+          documents: string[] | null
           id: string
           incident_date: string
           incident_type: string
@@ -357,6 +358,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
+          documents?: string[] | null
           id?: string
           incident_date?: string
           incident_type: string
@@ -372,6 +374,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string | null
+          documents?: string[] | null
           id?: string
           incident_date?: string
           incident_type?: string
