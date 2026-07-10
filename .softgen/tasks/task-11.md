@@ -1,6 +1,6 @@
 ---
 title: Email reminders before assignment return
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [email, assignments, reminders, admin]
@@ -13,12 +13,12 @@ position: 11
 Send an email reminder to the assigned employee 3 months before the expected return date. Reminder subject/body should be editable by Admin in System Settings. Use employee email from profiles.
 
 ## Checklist
-- [ ] Add reminder_email_subject and reminder_email_body to app_settings
-- [ ] Create email_reminders table to prevent duplicate sends
-- [ ] Update settingsService and admin/settings.tsx for editable templates
-- [ ] Create /api/send-reminders API route
-- [ ] Use Resend if RESEND_API_KEY is configured, otherwise log/send no email
-- [ ] Run build check
+- [x] Add reminder_email_subject and reminder_email_body to app_settings
+- [x] Create email_reminders table to prevent duplicate sends
+- [x] Update settingsService and admin/settings.tsx for editable templates
+- [x] Create /api/send-reminders API route
+- [x] Use Resend if RESEND_API_KEY is configured, otherwise log/send no email
+- [x] Run build check
 
 ## Acceptance
 - Admin can edit reminder email subject and body.
