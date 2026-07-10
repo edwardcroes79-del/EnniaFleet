@@ -48,16 +48,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return res.status(500).json({ error: assignmentsError.message });
   }
 
-  const { data: settings, error: settingsError } = await adminClient
+  const { data: settingsRows, error: settingsError } = await adminClient
     .from("app_settings")
     .select("reminder_email_subject, reminder_email_body")
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
 
   if (settingsError) {
     return res.status(500).json({ error: settingsError.message });
   }
+
+  const settings = settingsRows?.[0];
 
   const subjectTemplate = settings?.reminder_email_subject || "Reminder: Vehicle return due in 3 months";
   const bodyTemplate = settings?.reminder_email_body || "Dear {{employee_name}}, your assigned vehicle {{vehicle}} is due for return on {{expected_return_date}}. Please make the necessary arrangements.";
@@ -77,14 +78,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       continue;
     }
 
-    const { data: existing } = await adminClient
+    const { data: existingRows } = await adminClient
       .from("email_reminders")
       .select("id")
       .eq("assignment_id", a.id)
       .eq("reminder_type", "three_month_return")
-      .maybeSingle();
+      .limit(1);
 
-    if (existing) {
+    if (existingRows && existingRows.length > 0) {
       result.skipped++;
       continue;
     }

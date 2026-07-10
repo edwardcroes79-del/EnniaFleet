@@ -15,21 +15,26 @@ export const settingsService = {
       .from("app_settings")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    return { data: data as AppSettings | null, error };
+      .limit(1);
+    if (error) return { data: null, error };
+    return { data: (data?.[0] as AppSettings) || null, error: null };
   },
   async upsert(values: Partial<Omit<AppSettings, "id">>): Promise<{ data: AppSettings | null; error: Error | null }> {
-    const { data: existing, error: readErr } = await this.get();
+    const { data: existingRows, error: readErr } = await supabase
+      .from("app_settings")
+      .select("id")
+      .order("created_at", { ascending: false })
+      .limit(1);
     if (readErr) return { data: null, error: readErr };
-    if (existing) {
+    const existing = existingRows?.[0];
+    if (existing?.id) {
       const { data, error } = await supabase
         .from("app_settings")
         .update(values)
         .eq("id", existing.id)
-        .select()
-        .single();
-      return { data: data as AppSettings | null, error };
+        .select("*");
+      if (error) return { data: null, error };
+      return { data: (data?.[0] as AppSettings) || null, error: null };
     }
     const { data, error } = await supabase
       .from("app_settings")
@@ -40,9 +45,8 @@ export const settingsService = {
         reminder_email_subject: values.reminder_email_subject || "Reminder: Vehicle return due in 3 months",
         reminder_email_body: values.reminder_email_body || "Dear {{employee_name}}, your assigned vehicle {{vehicle}} is due for return on {{expected_return_date}}. Please make the necessary arrangements.",
       })
-      .select()
-      .single();
-    return { data: data as AppSettings | null, error };
+      .select("*");
+    return { data: (data?.[0] as AppSettings) || null, error };
   },
   async uploadLogo(file: File): Promise<{ publicUrl: string | null; error: Error | null }> {
     const ext = file.name.split(".").pop() || "png";
