@@ -27,14 +27,18 @@ function NewIncidentPage() {
   const [description, setDescription] = useState("");
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [typeInitialized, setTypeInitialized] = useState(false);
 
   useEffect(() => {
     vehicleService.list().then(({ data }) => setVehicles(data ?? []));
     incidentTypeService.list().then(({ data }) => {
       setTypes(data ?? []);
-      if (data && data.length > 0 && !type) setType(data[0].name);
+      if (data && data.length > 0 && !typeInitialized) {
+        setType(data[0].name);
+        setTypeInitialized(true);
+      }
     });
-  }, []);
+  }, [typeInitialized]);
 
   const handleAddPhoto = (file?: File) => {
     if (!file) return;

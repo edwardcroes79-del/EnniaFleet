@@ -35,10 +35,7 @@ function EditIncidentPage() {
     if (!id) return;
     Promise.all([
       vehicleService.list().then(({ data }) => setVehicles(data ?? [])),
-      incidentTypeService.list().then(({ data }) => {
-        setTypes(data ?? []);
-        if (data && data.length > 0 && !type) setType(data[0].name);
-      }),
+      incidentTypeService.list().then(({ data }) => setTypes(data ?? [])),
       incidentService.get(id).then(({ data, error }) => {
         if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
         if (data) {
@@ -54,7 +51,7 @@ function EditIncidentPage() {
         setLoading(false);
       }),
     ]);
-  }, [id, toast, type]);
+  }, [id, toast]);
 
   const handleAddPhoto = (file?: File) => {
     if (!file) return;
