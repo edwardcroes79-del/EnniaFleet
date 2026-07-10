@@ -17,6 +17,8 @@ function AdminSettingsPage() {
   const [companyName, setCompanyName] = useState("");
   const [currency, setCurrency] = useState("AWG");
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [reminderSubject, setReminderSubject] = useState("");
+  const [reminderBody, setReminderBody] = useState("");
 
   useEffect(() => {
     settingsService.get().then(({ data, error }) => {
@@ -24,6 +26,8 @@ function AdminSettingsPage() {
         setSettings(data);
         setCompanyName(data.company_name);
         setCurrency(data.currency);
+        setReminderSubject(data.reminder_email_subject);
+        setReminderBody(data.reminder_email_body);
       }
       if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
       setLoading(false);
@@ -44,6 +48,8 @@ function AdminSettingsPage() {
         company_name: companyName,
         currency,
         logo_url: logoUrl,
+        reminder_email_subject: reminderSubject,
+        reminder_email_body: reminderBody,
       });
       if (error) throw error;
       toast({ title: "Settings saved" });
@@ -96,6 +102,28 @@ function AdminSettingsPage() {
                   </Button>
                   <span className="text-sm text-muted-foreground">{logoFile ? logoFile.name : "No file chosen"}</span>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="mt-6">
+            <CardHeader><CardTitle className="text-base">Return reminder email</CardTitle></CardHeader>
+            <CardContent className="grid gap-4">
+              <div>
+                <Label>Subject</Label>
+                <Input value={reminderSubject} onChange={(e) => setReminderSubject(e.target.value)} placeholder="Reminder: Vehicle return due in 3 months" />
+              </div>
+              <div>
+                <Label>Body</Label>
+                <textarea
+                  value={reminderBody}
+                  onChange={(e) => setReminderBody(e.target.value)}
+                  rows={6}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="Dear {{employee_name}}, ..."
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Use {"{{employee_name}}"}, {"{{vehicle}}"}, and {"{{expected_return_date}}"} as placeholders.
+                </p>
               </div>
             </CardContent>
           </Card>

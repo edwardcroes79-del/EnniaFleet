@@ -5,6 +5,8 @@ export interface AppSettings {
   company_name: string;
   logo_url: string | null;
   currency: string;
+  reminder_email_subject: string;
+  reminder_email_body: string;
 }
 
 export const settingsService = {
@@ -31,7 +33,13 @@ export const settingsService = {
     }
     const { data, error } = await supabase
       .from("app_settings")
-      .insert({ company_name: values.company_name || "FleetCommand", currency: values.currency || "AWG", logo_url: values.logo_url || null })
+      .insert({
+        company_name: values.company_name || "FleetCommand",
+        currency: values.currency || "AWG",
+        logo_url: values.logo_url || null,
+        reminder_email_subject: values.reminder_email_subject || "Reminder: Vehicle return due in 3 months",
+        reminder_email_body: values.reminder_email_body || "Dear {{employee_name}}, your assigned vehicle {{vehicle}} is due for return on {{expected_return_date}}. Please make the necessary arrangements.",
+      })
       .select()
       .single();
     return { data: data as AppSettings | null, error };
