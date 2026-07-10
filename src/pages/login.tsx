@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { settingsService, type AppSettings } from "@/services/settingsService";
 
 export default function LoginPage() {
   const { signIn, isAuthenticated } = useAuth();
@@ -17,13 +16,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [settings, setSettings] = useState<AppSettings | null>(null);
-
-  useEffect(() => {
-    settingsService.get().then(({ data }) => {
-      if (data) setSettings(data);
-    });
-  }, []);
 
   if (isAuthenticated) {
     router.replace("/");
@@ -43,8 +35,8 @@ export default function LoginPage() {
     }
   };
 
-  const companyName = settings?.company_name || "FleetCommand";
-  const logoUrl = settings?.logo_url;
+  const companyName = "FleetCommand";
+  const logoUrl = undefined;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">

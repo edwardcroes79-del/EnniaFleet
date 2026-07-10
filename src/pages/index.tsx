@@ -72,6 +72,7 @@ function DashboardPage() {
   const activeAssignments = assignments.filter((a) => !a.actual_return_date).slice(0, 5);
   const totalFuel = fuel.reduce((sum, f) => sum + (f.cost ?? 0), 0);
   const totalMaintenance = maintenance.reduce((sum, m) => sum + (m.cost ?? 0), 0);
+  const totalVehicleCost = vehicles.reduce((sum, v) => sum + (v.purchase_price ?? 0), 0);
 
   return (
     <AppShell>
@@ -144,8 +145,8 @@ function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total fuel spend</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold font-display flex items-center gap-2"><Fuel className="h-5 w-5 text-blue-500" />{formatCurrency(totalFuel)}</div></CardContent></Card>
           <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total maintenance</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold font-display flex items-center gap-2"><Wrench className="h-5 w-5 text-amber-500" />{formatCurrency(totalMaintenance)}</div></CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total vehicle cost</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold font-display flex items-center gap-2"><Car className="h-5 w-5 text-emerald-500" />{formatCurrency(totalVehicleCost)}</div></CardContent></Card>
           <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Recent fuel entries</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold font-display">{fuel.length}</div></CardContent></Card>
-          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Service records</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold font-display">{maintenance.length}</div></CardContent></Card>
         </div>
       </div>
     </AppShell>

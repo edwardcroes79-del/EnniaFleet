@@ -5,7 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { settingsService, type AppSettings } from "@/services/settingsService";
 import {
   LayoutDashboard,
   Car,
@@ -22,6 +21,7 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSettings } from "@/contexts/SettingsProvider";
 
 interface NavItem {
   label: string;
@@ -45,14 +45,8 @@ const navItems: NavItem[] = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { profile, signOut, hasRole } = useAuth();
+  const { settings } = useSettings();
   const router = useRouter();
-  const [settings, setSettings] = useState<AppSettings | null>(null);
-
-  useEffect(() => {
-    settingsService.get().then(({ data }) => {
-      if (data) setSettings(data);
-    });
-  }, []);
 
   const visibleNav = navItems.filter(
     (item) => !item.roles || item.roles.some((r) => hasRole([r]))
