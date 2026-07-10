@@ -31,6 +31,9 @@ function AdminSettingsPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
 
   const loadTypes = () => {
     incidentTypeService.list().then(({ data, error }) => {
@@ -158,6 +161,28 @@ function AdminSettingsPage() {
     }
   };
 
+  const changeEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEmail.includes("@")) {
+      toast({ title: "Enter a valid email address", variant: "destructive" });
+      return;
+    }
+    if (newEmail !== confirmEmail) {
+      toast({ title: "Email addresses do not match", variant: "destructive" });
+      return;
+    }
+    setEmailSaving(true);
+    const { error } = await authService.updateEmail(newEmail);
+    setEmailSaving(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Email updated", description: "A confirmation email may be sent to the new address." });
+      setNewEmail("");
+      setConfirmEmail("");
+    }
+  };
+
   if (loading) {
     return <AppShell><div className="py-12 text-center">Loading…</div></AppShell>;
   }
@@ -267,6 +292,20 @@ function AdminSettingsPage() {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+          <Card className="mt-6">
+            <CardHeader><CardTitle className="text-base">Change email</CardTitle></CardHeader>
+            <CardContent className="grid gap-4">
+              <div>
+                <Label>New email</Label>
+                <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="admin@company.com" />
+              </div>
+              <div>
+                <Label>Confirm new email</Label>
+                <Input type="email" value={confirmEmail} onChange={(e) => setConfirmEmail(e.target.value)} placeholder="admin@company.com" />
+              </div>
+              <Button type="button" onClick={changeEmail} disabled={emailSaving}>{emailSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Update email</Button>
             </CardContent>
           </Card>
           <Card className="mt-6">

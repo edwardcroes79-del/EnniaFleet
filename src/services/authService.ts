@@ -198,6 +198,30 @@ export const authService = {
     }
   },
 
+  // Update current user's email
+  async updateEmail(newEmail: string): Promise<{ error: AuthError | null }> {
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) return { error: { message: userError.message } };
+
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      if (error) {
+        return { error: { message: error.message } };
+      }
+
+      // Update profile email to keep sync
+      if (userData.user) {
+        await supabase.from("profiles").update({ email: newEmail }).eq("id", userData.user.id);
+      }
+
+      return { error: null };
+    } catch (error) {
+      return {
+        error: { message: "An unexpected error occurred while updating the email" },
+      };
+    }
+  },
+
   // Confirm email (REQUIRED)
   async confirmEmail(token: string, type: 'signup' | 'recovery' | 'email_change' = 'signup'): Promise<{ user: AuthUser | null; error: AuthError | null }> {
     try {
