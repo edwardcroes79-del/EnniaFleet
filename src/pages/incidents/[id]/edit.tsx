@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { vehicleService, incidentService, incidentTypeService, incidentPhotoService, type Vehicle, type Incident, type IncidentType } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X } from "lucide-react";
@@ -144,13 +145,31 @@ function EditIncidentPage() {
                   <div className="flex flex-wrap gap-3 mt-2">
                     {existingPhotos.map((url, idx) => (
                       <div key={`ex-${idx}`} className="relative h-24 w-24 rounded-md border overflow-hidden">
-                        <img src={url} alt="" className="h-full w-full object-cover" />
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button type="button" className="h-full w-full">
+                              <img src={url} alt="" className="h-full w-full object-cover" />
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-3xl">
+                            <img src={url} alt="" className="w-full rounded-md" />
+                          </DialogContent>
+                        </Dialog>
                         <button type="button" onClick={() => removeExistingPhoto(idx)} className="absolute right-1 top-1 rounded-full bg-destructive p-1 text-white"><X className="h-3 w-3" /></button>
                       </div>
                     ))}
                     {newPhotoUrls.map((url, idx) => (
                       <div key={`new-${idx}`} className="relative h-24 w-24 rounded-md border overflow-hidden">
-                        <img src={url} alt="" className="h-full w-full object-cover" />
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button type="button" className="h-full w-full">
+                              <img src={url} alt="" className="h-full w-full object-cover" />
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-3xl">
+                            <img src={url} alt="" className="w-full rounded-md" />
+                          </DialogContent>
+                        </Dialog>
                         <button type="button" onClick={() => removeNewPhoto(idx)} className="absolute right-1 top-1 rounded-full bg-destructive p-1 text-white"><X className="h-3 w-3" /></button>
                       </div>
                     ))}
