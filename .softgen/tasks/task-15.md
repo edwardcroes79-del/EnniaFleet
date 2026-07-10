@@ -1,6 +1,6 @@
 ---
 title: Incident photo upload and configurable types
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [incidents, photos, admin]
@@ -10,16 +10,15 @@ position: 15
 ---
 
 ## Notes
-Allow uploading vehicle damage photos when reporting an accident. Admin can manage custom incident types in settings.
+Allow uploading vehicle damage photos when reporting an accident. Admin can manage custom incident types in settings. The `incidents.photos` text[] column already existed from prior migrations.
 
 ## Checklist
-- [ ] Add photo_urls column to incidents table
-- [ ] Create incident_photos storage bucket with RLS
-- [ ] Create incident_types table for admin-managed types
-- [ ] Seed incident_types with defaults (Accident, Damage, Traffic fine, Mechanical, Breakdown)
-- [ ] Update incidents new/edit pages with conditional photo upload
-- [ ] Add incident types management to /admin/settings
-- [ ] Run build check
+- [x] Create incident_photos storage bucket with RLS
+- [x] Create incident_types table for admin-managed types
+- [x] Seed incident_types with defaults (Accident, Damage, Traffic fine, Mechanical, Breakdown)
+- [x] Update incidents new/edit pages with conditional photo upload
+- [x] Add incident types management to /admin/settings
+- [x] Run build check
 
 ## Acceptance
 - Users can upload multiple photos when reporting an Accident.

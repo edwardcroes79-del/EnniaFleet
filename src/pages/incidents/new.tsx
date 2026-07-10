@@ -51,7 +51,7 @@ function NewIncidentPage() {
     e.preventDefault();
     setSaving(true);
 
-    let uploaded: string[] = [];
+    const uploaded: string[] = [];
     if (type.toLowerCase() === "accident" && photoFiles.length > 0) {
       for (const file of photoFiles) {
         const { publicUrl, error } = await incidentPhotoService.upload(file);
