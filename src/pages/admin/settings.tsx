@@ -32,16 +32,15 @@ function AdminSettingsPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!settings) return;
     setSaving(true);
     try {
-      let logoUrl = settings.logo_url;
+      let logoUrl = settings?.logo_url || null;
       if (logoFile) {
         const { publicUrl, error } = await settingsService.uploadLogo(logoFile);
         if (error) throw error;
         logoUrl = publicUrl;
       }
-      const { error } = await settingsService.update(settings.id, {
+      const { data, error } = await settingsService.upsert({
         company_name: companyName,
         currency,
         logo_url: logoUrl,
@@ -49,7 +48,7 @@ function AdminSettingsPage() {
       if (error) throw error;
       toast({ title: "Settings saved" });
       setLogoFile(null);
-      settingsService.get().then(({ data }) => data && setSettings(data));
+      if (data) setSettings(data);
     } catch (err) {
       toast({
         title: "Could not save settings",

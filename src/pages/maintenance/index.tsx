@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { maintenanceService, type MaintenanceWithVehicle } from "@/services/fleetService";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
 
 function MaintenancePage() {
   const [rows, setRows] = useState<MaintenanceWithVehicle[]>([]);
@@ -53,7 +54,7 @@ function MaintenancePage() {
                     <TableCell><Badge variant="outline">{m.service_type}</Badge></TableCell>
                     <TableCell>{m.service_date}</TableCell>
                     <TableCell>{m.service_provider || "—"}</TableCell>
-                    <TableCell className="font-mono">${m.cost?.toLocaleString() ?? "—"}</TableCell>
+                    <TableCell className="font-mono">{formatCurrency(m.cost)}</TableCell>
                     <TableCell>{m.next_service_due || "—"}</TableCell>
                   </TableRow>
                 ))}

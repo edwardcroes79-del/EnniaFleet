@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { vehicleService, vehiclePhotoService, type Vehicle } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Trash2, Upload, Loader2 } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 function statusVariant(status: string) {
   switch (status) {
@@ -118,7 +119,7 @@ function VehicleDetailPage() {
               <div><p className="text-xs text-muted-foreground uppercase">Fuel / Transmission</p><p>{vehicle.fuel_type} / {vehicle.transmission}</p></div>
               <div><p className="text-xs text-muted-foreground uppercase">Mileage</p><p className="font-mono">{vehicle.mileage?.toLocaleString() ?? "—"}</p></div>
               <div><p className="text-xs text-muted-foreground uppercase">Purchase date</p><p>{vehicle.purchase_date || "—"}</p></div>
-              <div><p className="text-xs text-muted-foreground uppercase">Purchase price</p><p className="font-mono">{vehicle.purchase_price ? `$${vehicle.purchase_price.toLocaleString()}` : "—"}</p></div>
+              <div><p className="text-xs text-muted-foreground uppercase">Purchase price</p><p className="font-mono">{formatCurrency(vehicle.purchase_price)}</p></div>
               <div><p className="text-xs text-muted-foreground uppercase">Insurance expiry</p><p>{vehicle.insurance_expiry || "—"}</p></div>
               <div><p className="text-xs text-muted-foreground uppercase">Registration expiry</p><p>{vehicle.registration_expiry || "—"}</p></div>
               <div><p className="text-xs text-muted-foreground uppercase">Service due</p><p>{vehicle.service_due_date || "—"}</p></div>

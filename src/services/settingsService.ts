@@ -17,11 +17,21 @@ export const settingsService = {
       .maybeSingle();
     return { data: data as AppSettings | null, error };
   },
-  async update(id: string, values: Partial<AppSettings>): Promise<{ data: AppSettings | null; error: Error | null }> {
+  async upsert(values: Partial<Omit<AppSettings, "id">>): Promise<{ data: AppSettings | null; error: Error | null }> {
+    const { data: existing, error: readErr } = await this.get();
+    if (readErr) return { data: null, error: readErr };
+    if (existing) {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .update(values)
+        .eq("id", existing.id)
+        .select()
+        .single();
+      return { data: data as AppSettings | null, error };
+    }
     const { data, error } = await supabase
       .from("app_settings")
-      .update(values)
-      .eq("id", id)
+      .insert({ company_name: values.company_name || "FleetCommand", currency: values.currency || "AWG", logo_url: values.logo_url || null })
       .select()
       .single();
     return { data: data as AppSettings | null, error };

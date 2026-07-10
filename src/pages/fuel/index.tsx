@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { fuelService, type FuelLogWithRelations } from "@/services/fleetService";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
 
 function FuelPage() {
   const [rows, setRows] = useState<FuelLogWithRelations[]>([]);
@@ -54,7 +55,7 @@ function FuelPage() {
                     <TableCell>{f.driver?.full_name || "—"}</TableCell>
                     <TableCell className="font-mono">{f.odometer?.toLocaleString() ?? "—"}</TableCell>
                     <TableCell>{f.liters ?? "—"}</TableCell>
-                    <TableCell className="font-mono">${f.cost?.toLocaleString() ?? "—"}</TableCell>
+                    <TableCell className="font-mono">{formatCurrency(f.cost)}</TableCell>
                     <TableCell>{f.fuel_station || "—"}</TableCell>
                   </TableRow>
                 ))}

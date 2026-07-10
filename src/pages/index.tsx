@@ -8,6 +8,7 @@ import { vehicleService, maintenanceService, fuelService, assignmentService, typ
 import { useToast } from "@/hooks/use-toast";
 import { Car, Users, Wrench, Fuel, AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import { formatCurrency } from "@/lib/utils";
 
 function statusVariant(status: string) {
   switch (status) {
@@ -141,8 +142,8 @@ function DashboardPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total fuel spend</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold font-display flex items-center gap-2"><Fuel className="h-5 w-5 text-blue-500" />${totalFuel.toLocaleString()}</div></CardContent></Card>
-          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total maintenance</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold font-display flex items-center gap-2"><Wrench className="h-5 w-5 text-amber-500" />${totalMaintenance.toLocaleString()}</div></CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total fuel spend</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold font-display flex items-center gap-2"><Fuel className="h-5 w-5 text-blue-500" />{formatCurrency(totalFuel)}</div></CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total maintenance</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold font-display flex items-center gap-2"><Wrench className="h-5 w-5 text-amber-500" />{formatCurrency(totalMaintenance)}</div></CardContent></Card>
           <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Recent fuel entries</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold font-display">{fuel.length}</div></CardContent></Card>
           <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Service records</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold font-display">{maintenance.length}</div></CardContent></Card>
         </div>

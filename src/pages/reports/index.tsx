@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { vehicleService, maintenanceService, fuelService, assignmentService, type Vehicle, type MaintenanceWithVehicle, type FuelLogWithRelations, type AssignmentWithRelations } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
 
 function ReportsPage() {
   const { toast } = useToast();
@@ -87,7 +88,7 @@ function ReportsPage() {
             <Table>
               <TableHeader><TableRow><TableHead>Vehicle</TableHead><TableHead>Total cost</TableHead></TableRow></TableHeader>
               <TableBody>
-                {maintenanceByVehicle.map((m) => <TableRow key={m.vehicle?.id}><TableCell className="font-mono">{m.vehicle?.vehicle_id} — {m.vehicle?.make} {m.vehicle?.model}</TableCell><TableCell className="font-mono">${m.cost.toLocaleString()}</TableCell></TableRow>)}
+                {maintenanceByVehicle.map((m) => <TableRow key={m.vehicle?.id}><TableCell className="font-mono">{m.vehicle?.vehicle_id} — {m.vehicle?.make} {m.vehicle?.model}</TableCell><TableCell className="font-mono">{formatCurrency(m.cost)}</TableCell></TableRow>)}
                 {maintenanceByVehicle.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
               </TableBody>
             </Table>
@@ -99,7 +100,7 @@ function ReportsPage() {
             <Table>
               <TableHeader><TableRow><TableHead>Vehicle</TableHead><TableHead>Total cost</TableHead></TableRow></TableHeader>
               <TableBody>
-                {fuelByVehicle.map((f) => <TableRow key={f.vehicle?.id}><TableCell className="font-mono">{f.vehicle?.vehicle_id} — {f.vehicle?.make} {f.vehicle?.model}</TableCell><TableCell className="font-mono">${f.cost.toLocaleString()}</TableCell></TableRow>)}
+                {fuelByVehicle.map((f) => <TableRow key={f.vehicle?.id}><TableCell className="font-mono">{f.vehicle?.vehicle_id} — {f.vehicle?.make} {f.vehicle?.model}</TableCell><TableCell className="font-mono">{formatCurrency(f.cost)}</TableCell></TableRow>)}
                 {fuelByVehicle.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
               </TableBody>
             </Table>
