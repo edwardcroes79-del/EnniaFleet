@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsProvider";
+import { authService } from "@/services/authService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Loader2 } from "lucide-react";
-import Link from "next/link";
 
 export default function LoginPage() {
   const { signIn, isAuthenticated } = useAuth();
@@ -17,7 +17,10 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   if (isAuthenticated) {
     router.replace("/");
@@ -37,6 +40,21 @@ export default function LoginPage() {
     }
   };
 
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+    setResetLoading(true);
+    const { error } = await authService.resetPasswordForAdmin(email);
+    setResetLoading(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      setMessage("If this is a registered admin email, a password reset link has been sent.");
+      setShowForgot(false);
+    }
+  };
+
   const companyName = settings?.company_name || "FleetCommand";
   const logoUrl = settings?.logo_url;
 
@@ -52,51 +70,85 @@ export default function LoginPage() {
             )}
           </div>
           <CardTitle className="font-display text-2xl">{companyName}</CardTitle>
-          <CardDescription>Sign in to manage your fleet</CardDescription>
+          <CardDescription>{showForgot ? "Reset your admin password" : "Sign in to manage your fleet"}</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="fleet@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Sign in
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-primary hover:underline">
-                Register
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
+        {showForgot ? (
+          <form onSubmit={handleReset}>
+            <CardContent className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              {message && (
+                <Alert>
+                  <AlertDescription>{message}</AlertDescription>
+                </Alert>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="email">Admin email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="fleet@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-3">
+              <Button type="submit" className="w-full" disabled={resetLoading}>
+                {resetLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Send reset link
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={() => setShowForgot(false)}>
+                Back to sign in
+              </Button>
+            </CardFooter>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="fleet@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-3">
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Sign in
+              </Button>
+              <Button type="button" variant="link" className="text-xs text-muted-foreground" onClick={() => setShowForgot(true)}>
+                Forgot password?
+              </Button>
+            </CardFooter>
+          </form>
+        )}
       </Card>
     </div>
   );

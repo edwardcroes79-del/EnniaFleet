@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { settingsService, type AppSettings } from "@/services/settingsService";
+import { authService } from "@/services/authService";
 import { incidentTypeService, type IncidentType, maintenanceTypeService, type MaintenanceType } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X, Plus } from "lucide-react";
@@ -26,6 +27,10 @@ function AdminSettingsPage() {
   const [newType, setNewType] = useState("");
   const [maintenanceTypes, setMaintenanceTypes] = useState<MaintenanceType[]>([]);
   const [newMaintenanceType, setNewMaintenanceType] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   const loadTypes = () => {
     incidentTypeService.list().then(({ data, error }) => {
@@ -127,6 +132,29 @@ function AdminSettingsPage() {
     else {
       toast({ title: "Service type removed" });
       loadMaintenanceTypes();
+    }
+  };
+
+  const changePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+    setPasswordSaving(true);
+    const { error } = await authService.updatePassword(newPassword);
+    setPasswordSaving(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Password updated" });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     }
   };
 
@@ -239,6 +267,24 @@ function AdminSettingsPage() {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+          <Card className="mt-6">
+            <CardHeader><CardTitle className="text-base">Change password</CardTitle></CardHeader>
+            <CardContent className="grid gap-4">
+              <div>
+                <Label>Current password</Label>
+                <Input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" />
+              </div>
+              <div>
+                <Label>New password</Label>
+                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" />
+              </div>
+              <div>
+                <Label>Confirm new password</Label>
+                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" />
+              </div>
+              <Button type="button" onClick={changePassword} disabled={passwordSaving}>{passwordSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Update password</Button>
             </CardContent>
           </Card>
           <div className="mt-6 flex gap-3">

@@ -146,6 +146,58 @@ export const authService = {
     }
   },
 
+  // Reset password for admin emails only
+  async resetPasswordForAdmin(email: string): Promise<{ error: AuthError | null }> {
+    try {
+      const { data, error: lookupError } = await supabase
+        .from("profiles")
+        .select("id, role")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (lookupError) {
+        return { error: { message: lookupError.message } };
+      }
+
+      if (!data) {
+        return { error: { message: "No account found with that email." } };
+      }
+
+      if (data.role !== "admin") {
+        return { error: { message: "Password recovery is only available for admin accounts." } };
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${getURL()}auth/reset-password`,
+      });
+
+      if (error) {
+        return { error: { message: error.message } };
+      }
+
+      return { error: null };
+    } catch (error) {
+      return {
+        error: { message: "An unexpected error occurred during password reset" },
+      };
+    }
+  },
+
+  // Update current user's password
+  async updatePassword(newPassword: string): Promise<{ error: AuthError | null }> {
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        return { error: { message: error.message } };
+      }
+      return { error: null };
+    } catch (error) {
+      return {
+        error: { message: "An unexpected error occurred while updating the password" },
+      };
+    }
+  },
+
   // Confirm email (REQUIRED)
   async confirmEmail(token: string, type: 'signup' | 'recovery' | 'email_change' = 'signup'): Promise<{ user: AuthUser | null; error: AuthError | null }> {
     try {
