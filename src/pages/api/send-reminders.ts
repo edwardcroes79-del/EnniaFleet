@@ -65,8 +65,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const result: ReminderResult = { sent: 0, skipped: 0, errors: [] };
 
   for (const a of assignments || []) {
-    const employee = a.employee as { full_name: string; email: string } | null;
-    const vehicle = a.vehicle as { vehicle_id: string; make: string; model: string } | null;
+    const employeeArr = a.employee as unknown as Array<{ full_name: string; email: string }> | null;
+    const vehicleArr = a.vehicle as unknown as Array<{ vehicle_id: string; make: string; model: string }> | null;
+    const employee = employeeArr?.[0] ?? null;
+    const vehicle = vehicleArr?.[0] ?? null;
     const email = employee?.email;
     const expectedReturn = a.expected_return_date;
 
