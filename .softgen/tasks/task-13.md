@@ -1,22 +1,22 @@
 ---
 title: Maintenance editing
-status: in_progress
+status: done
 priority: high
 type: feature
-tags: [maintenance, ui, crud]
+tags: [maintenance, editing, ui]
 created_by: agent
-created_at: 2026-07-10T03:00:00Z
+created_at: 2026-07-10T02:20:00Z
 position: 13
 ---
 
 ## Notes
-Maintenance records currently only have a create page and list. Add edit page and edit links.
+Allow admins to edit existing maintenance records.
 
 ## Checklist
-- [ ] Add `maintenanceService.get` and `maintenanceService.update` to fleetService
-- [ ] Create `src/pages/maintenance/[id]/edit.tsx`
-- [ ] Add edit action to `src/pages/maintenance/index.tsx`
-- [ ] Run build check
+- [x] Add maintenanceService.get()
+- [x] Create src/pages/maintenance/[id]/edit.tsx
+- [x] Add Edit link to src/pages/maintenance/index.tsx
+- [x] Run build check
 
 ## Acceptance
 - Admin can edit an existing maintenance record.
