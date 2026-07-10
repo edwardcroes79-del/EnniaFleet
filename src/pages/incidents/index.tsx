@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { incidentService, type IncidentWithRelations } from "@/services/fleetService";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function statusVariant(status: string) {
@@ -50,11 +50,12 @@ function IncidentsPage() {
                   <TableHead>Type</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="w-20">Edit</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? <TableRow><TableCell colSpan={5} className="h-24 text-center">Loading…</TableCell></TableRow> :
-                rows.length === 0 ? <TableRow><TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No incidents found.</TableCell></TableRow> :
+                {loading ? <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading…</TableCell></TableRow> :
+                rows.length === 0 ? <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No incidents found.</TableCell></TableRow> :
                 rows.map((i) => (
                   <TableRow key={i.id}>
                     <TableCell>{i.incident_date || i.created_at.slice(0, 10)}</TableCell>
@@ -62,6 +63,9 @@ function IncidentsPage() {
                     <TableCell>{i.incident_type}</TableCell>
                     <TableCell>{i.location || "—"}</TableCell>
                     <TableCell><Badge variant={statusVariant(i.status)}>{i.status}</Badge></TableCell>
+                    <TableCell>
+                      <Link href={`/incidents/${i.id}/edit`}><Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button></Link>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

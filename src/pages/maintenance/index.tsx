@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { maintenanceService, type MaintenanceWithVehicle } from "@/services/fleetService";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 
@@ -43,11 +43,12 @@ function MaintenancePage() {
                   <TableHead>Provider</TableHead>
                   <TableHead>Cost</TableHead>
                   <TableHead>Next due</TableHead>
+                  <TableHead className="w-20">Edit</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading…</TableCell></TableRow> :
-                rows.length === 0 ? <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No records found.</TableCell></TableRow> :
+                {loading ? <TableRow><TableCell colSpan={7} className="h-24 text-center">Loading…</TableCell></TableRow> :
+                rows.length === 0 ? <TableRow><TableCell colSpan={7} className="h-24 text-center text-muted-foreground">No records found.</TableCell></TableRow> :
                 rows.map((m) => (
                   <TableRow key={m.id}>
                     <TableCell className="font-mono">{m.vehicle?.vehicle_id || m.vehicle_id}</TableCell>
@@ -56,6 +57,9 @@ function MaintenancePage() {
                     <TableCell>{m.service_provider || "—"}</TableCell>
                     <TableCell className="font-mono">{formatCurrency(m.cost)}</TableCell>
                     <TableCell>{m.next_service_due || "—"}</TableCell>
+                    <TableCell>
+                      <Link href={`/maintenance/${m.id}/edit`}><Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button></Link>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

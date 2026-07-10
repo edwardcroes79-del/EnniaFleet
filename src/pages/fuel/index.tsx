@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { fuelService, type FuelLogWithRelations } from "@/services/fleetService";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 
@@ -43,11 +43,12 @@ function FuelPage() {
                   <TableHead>Liters</TableHead>
                   <TableHead>Cost</TableHead>
                   <TableHead>Station</TableHead>
+                  <TableHead className="w-20">Edit</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? <TableRow><TableCell colSpan={7} className="h-24 text-center">Loading…</TableCell></TableRow> :
-                rows.length === 0 ? <TableRow><TableCell colSpan={7} className="h-24 text-center text-muted-foreground">No entries found.</TableCell></TableRow> :
+                {loading ? <TableRow><TableCell colSpan={8} className="h-24 text-center">Loading…</TableCell></TableRow> :
+                rows.length === 0 ? <TableRow><TableCell colSpan={8} className="h-24 text-center text-muted-foreground">No entries found.</TableCell></TableRow> :
                 rows.map((f) => (
                   <TableRow key={f.id}>
                     <TableCell>{f.fuel_date}</TableCell>
@@ -57,6 +58,9 @@ function FuelPage() {
                     <TableCell>{f.liters ?? "—"}</TableCell>
                     <TableCell className="font-mono">{formatCurrency(f.cost)}</TableCell>
                     <TableCell>{f.fuel_station || "—"}</TableCell>
+                    <TableCell>
+                      <Link href={`/fuel/${f.id}/edit`}><Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button></Link>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

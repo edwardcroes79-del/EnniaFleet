@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { assignmentService, type AssignmentWithRelations } from "@/services/fleetService";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function AssignmentsPage() {
@@ -42,11 +42,12 @@ function AssignmentsPage() {
                   <TableHead>Expected return</TableHead>
                   <TableHead>Actual return</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="w-20">Edit</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading…</TableCell></TableRow> :
-                rows.length === 0 ? <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No assignments found.</TableCell></TableRow> :
+                {loading ? <TableRow><TableCell colSpan={7} className="h-24 text-center">Loading…</TableCell></TableRow> :
+                rows.length === 0 ? <TableRow><TableCell colSpan={7} className="h-24 text-center text-muted-foreground">No assignments found.</TableCell></TableRow> :
                 rows.map((a) => (
                   <TableRow key={a.id}>
                     <TableCell className="font-mono">{a.vehicle?.vehicle_id || a.vehicle_id}</TableCell>
@@ -55,6 +56,9 @@ function AssignmentsPage() {
                     <TableCell>{a.expected_return_date || "—"}</TableCell>
                     <TableCell>{a.actual_return_date || "—"}</TableCell>
                     <TableCell><Badge variant={a.actual_return_date ? "secondary" : "default"}>{a.actual_return_date ? "Returned" : "Active"}</Badge></TableCell>
+                    <TableCell>
+                      <Link href={`/assignments/${a.id}/edit`}><Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button></Link>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
