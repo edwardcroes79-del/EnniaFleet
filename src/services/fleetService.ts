@@ -77,6 +77,19 @@ export const profileService = {
     }
     return { error: null };
   },
+  async updateViaApi(id: string, values: Partial<Omit<Employee, "id" | "email" | "role" | "created_at" | "updated_at" | "avatar_url">>): Promise<{ data: Employee | null; error: Error | null }> {
+    const res = await fetch("/api/admin/update-employee", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...values }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      return { data: null, error: new Error(err.error || "Failed to update employee") };
+    }
+    const body = await res.json();
+    return { data: body.data as Employee, error: null };
+  },
 };
 
 export const employeeService = profileService;

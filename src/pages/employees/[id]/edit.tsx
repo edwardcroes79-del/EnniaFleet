@@ -36,7 +36,7 @@ function EditEmployeePage() {
     delete payload.created_at;
     delete payload.email;
     delete payload.role;
-    const { error } = await employeeService.update(id, payload);
+    const { error } = await employeeService.updateViaApi(id, payload);
     setSaving(false);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else {
