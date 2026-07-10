@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { vehicleService, vehiclePhotoService } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload } from "lucide-react";
@@ -30,6 +31,8 @@ const initial = {
   registration_expiry: "",
   service_due_date: "",
   notes: "",
+  insurance_provider: "",
+  insurance_policy_number: "",
 };
 
 function NewVehiclePage() {
@@ -75,6 +78,8 @@ function NewVehiclePage() {
         registration_expiry: values.registration_expiry || null,
         service_due_date: values.service_due_date || null,
         notes: values.notes.trim() || null,
+        insurance_provider: values.insurance_provider.trim() || null,
+        insurance_policy_number: values.insurance_policy_number.trim() || null,
         is_deleted: false,
       };
       const { data, error } = await vehicleService.create(payload as any);
@@ -118,64 +123,75 @@ function NewVehiclePage() {
       <div className="max-w-3xl">
         <h1 className="font-display text-2xl font-bold tracking-tight mb-6">Add vehicle</h1>
         <form onSubmit={submit}>
-          <Card>
-            <CardHeader><CardTitle className="text-base">Vehicle details</CardTitle></CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div><Label htmlFor="vehicle_id">Vehicle ID *</Label><Input id="vehicle_id" required value={values.vehicle_id} onChange={(e) => set("vehicle_id", e.target.value)} /></div>
-              <div><Label htmlFor="plate">License plate *</Label><Input id="plate" required value={values.license_plate} onChange={(e) => set("license_plate", e.target.value)} /></div>
-              <div className="sm:col-span-2"><Label htmlFor="vin">VIN</Label><Input id="vin" value={values.vin} onChange={(e) => set("vin", e.target.value)} /></div>
-              <div><Label htmlFor="make">Make *</Label><Input id="make" required value={values.make} onChange={(e) => set("make", e.target.value)} /></div>
-              <div><Label htmlFor="model">Model *</Label><Input id="model" required value={values.model} onChange={(e) => set("model", e.target.value)} /></div>
-              <div><Label htmlFor="year">Year</Label><Input id="year" type="number" value={values.year ?? ""} onChange={(e) => set("year", e.target.value ? parseInt(e.target.value) : undefined)} /></div>
-              <div><Label htmlFor="color">Color</Label><Input id="color" value={values.color} onChange={(e) => set("color", e.target.value)} /></div>
-              <div>
-                <Label>Fuel type</Label>
-                <Select value={values.fuel_type} onValueChange={(v) => set("fuel_type", v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {["Petrol", "Diesel", "Electric", "Hybrid"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Transmission</Label>
-                <Select value={values.transmission} onValueChange={(v) => set("transmission", v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {["Automatic", "Manual"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div><Label htmlFor="mileage">Mileage</Label><Input id="mileage" type="number" value={values.mileage} onChange={(e) => set("mileage", parseInt(e.target.value || "0"))} /></div>
-              <div><Label htmlFor="purchase_date">Purchase date</Label><Input id="purchase_date" type="date" value={values.purchase_date} onChange={(e) => set("purchase_date", e.target.value)} /></div>
-              <div><Label htmlFor="purchase_price">Purchase price</Label><Input id="purchase_price" type="number" value={values.purchase_price ?? ""} onChange={(e) => set("purchase_price", e.target.value ? parseFloat(e.target.value) : undefined)} /></div>
-              <div>
-                <Label>Status</Label>
-                <Select value={values.status} onValueChange={(v) => set("status", v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {["Available", "Assigned", "Maintenance", "Retired"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div><Label htmlFor="insurance_expiry">Insurance expiry</Label><Input id="insurance_expiry" type="date" value={values.insurance_expiry} onChange={(e) => set("insurance_expiry", e.target.value)} /></div>
-              <div><Label htmlFor="registration_expiry">Registration expiry</Label><Input id="registration_expiry" type="date" value={values.registration_expiry} onChange={(e) => set("registration_expiry", e.target.value)} /></div>
-              <div><Label htmlFor="service_due">Service due</Label><Input id="service_due" type="date" value={values.service_due_date} onChange={(e) => set("service_due_date", e.target.value)} /></div>
-              <div className="sm:col-span-2"><Label htmlFor="notes">Notes</Label><Input id="notes" value={values.notes} onChange={(e) => set("notes", e.target.value)} /></div>
-              <div className="sm:col-span-2">
-                <Label>Vehicle photo</Label>
-                <div className="mt-2 flex items-center gap-4">
-                  <Button asChild variant="outline" type="button">
-                    <label className="cursor-pointer">
-                      <Upload className="mr-2 h-4 w-4" /> Choose photo
-                      <input type="file" accept="image/*" className="sr-only" onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
-                    </label>
-                  </Button>
-                  <span className="text-sm text-muted-foreground">{photo ? photo.name : "No file chosen"}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="details">
+            <TabsList className="mb-4">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="insurance">Insurance</TabsTrigger>
+            </TabsList>
+            <TabsContent value="details">
+              <Card>
+                <CardHeader><CardTitle className="text-base">Vehicle details</CardTitle></CardHeader>
+                <CardContent className="grid gap-4 sm:grid-cols-2">
+                  <div><Label htmlFor="vehicle_id">Vehicle ID *</Label><Input id="vehicle_id" required value={values.vehicle_id} onChange={(e) => set("vehicle_id", e.target.value)} /></div>
+                  <div><Label htmlFor="plate">License plate *</Label><Input id="plate" required value={values.license_plate} onChange={(e) => set("license_plate", e.target.value)} /></div>
+                  <div className="sm:col-span-2"><Label htmlFor="vin">VIN</Label><Input id="vin" value={values.vin} onChange={(e) => set("vin", e.target.value)} /></div>
+                  <div><Label htmlFor="make">Make *</Label><Input id="make" required value={values.make} onChange={(e) => set("make", e.target.value)} /></div>
+                  <div><Label htmlFor="model">Model *</Label><Input id="model" required value={values.model} onChange={(e) => set("model", e.target.value)} /></div>
+                  <div><Label htmlFor="year">Year</Label><Input id="year" type="number" value={values.year ?? ""} onChange={(e) => set("year", e.target.value ? parseInt(e.target.value) : undefined)} /></div>
+                  <div><Label htmlFor="color">Color</Label><Input id="color" value={values.color} onChange={(e) => set("color", e.target.value)} /></div>
+                  <div>
+                    <Label>Fuel type</Label>
+                    <Select value={values.fuel_type} onValueChange={(v) => set("fuel_type", v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{["Petrol", "Diesel", "Electric", "Hybrid"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Transmission</Label>
+                    <Select value={values.transmission} onValueChange={(v) => set("transmission", v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{["Automatic", "Manual"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label htmlFor="mileage">Mileage</Label><Input id="mileage" type="number" value={values.mileage} onChange={(e) => set("mileage", parseInt(e.target.value || "0"))} /></div>
+                  <div><Label htmlFor="purchase_date">Purchase date</Label><Input id="purchase_date" type="date" value={values.purchase_date} onChange={(e) => set("purchase_date", e.target.value)} /></div>
+                  <div><Label htmlFor="purchase_price">Purchase price</Label><Input id="purchase_price" type="number" value={values.purchase_price ?? ""} onChange={(e) => set("purchase_price", e.target.value ? parseFloat(e.target.value) : undefined)} /></div>
+                  <div>
+                    <Label>Status</Label>
+                    <Select value={values.status} onValueChange={(v) => set("status", v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{["Available", "Assigned", "Maintenance", "Retired"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="sm:col-span-2"><Label htmlFor="notes">Notes</Label><Input id="notes" value={values.notes} onChange={(e) => set("notes", e.target.value)} /></div>
+                  <div className="sm:col-span-2">
+                    <Label>Vehicle photo</Label>
+                    <div className="mt-2 flex items-center gap-4">
+                      <Button asChild variant="outline" type="button">
+                        <label className="cursor-pointer">
+                          <Upload className="mr-2 h-4 w-4" /> Choose photo
+                          <input type="file" accept="image/*" className="sr-only" onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
+                        </label>
+                      </Button>
+                      <span className="text-sm text-muted-foreground">{photo ? photo.name : "No file chosen"}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="insurance">
+              <Card>
+                <CardHeader><CardTitle className="text-base">Insurance information</CardTitle></CardHeader>
+                <CardContent className="grid gap-4 sm:grid-cols-2">
+                  <div><Label htmlFor="insurance_provider">Insurance provider</Label><Input id="insurance_provider" value={values.insurance_provider} onChange={(e) => set("insurance_provider", e.target.value)} /></div>
+                  <div><Label htmlFor="insurance_policy_number">Insurance number</Label><Input id="insurance_policy_number" value={values.insurance_policy_number} onChange={(e) => set("insurance_policy_number", e.target.value)} /></div>
+                  <div><Label htmlFor="insurance_expiry">Insurance expiry</Label><Input id="insurance_expiry" type="date" value={values.insurance_expiry} onChange={(e) => set("insurance_expiry", e.target.value)} /></div>
+                  <div><Label htmlFor="registration_expiry">Registration expiry</Label><Input id="registration_expiry" type="date" value={values.registration_expiry} onChange={(e) => set("registration_expiry", e.target.value)} /></div>
+                  <div><Label htmlFor="service_due">Service due</Label><Input id="service_due" type="date" value={values.service_due_date} onChange={(e) => set("service_due_date", e.target.value)} /></div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
           <div className="mt-6 flex gap-3">
             <Button type="button" variant="outline" onClick={() => router.push("/vehicles")}>Cancel</Button>
             <Button type="submit" disabled={saving}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save vehicle</Button>
