@@ -123,7 +123,7 @@ function VehicleDetailPage() {
               <div><p className="text-xs text-muted-foreground uppercase">Insurance provider</p><p>{vehicle.insurance_provider || "—"}</p></div>
               <div><p className="text-xs text-muted-foreground uppercase">Insurance number</p>
                 {vehicle.insurance_policy_number ? (
-                  <Link href={`/documents?vehicle_id=${vehicle.id}&type=Insurance certificate`} className="font-mono text-primary hover:underline">
+                  <Link href={`/documents?vehicle_id=${vehicle.id}&type=Insurance`} className="font-mono text-primary hover:underline">
                     {vehicle.insurance_policy_number}
                   </Link>
                 ) : (
