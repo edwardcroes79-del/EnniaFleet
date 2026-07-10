@@ -102,8 +102,16 @@ export const assignmentService = {
       .order("created_at", { ascending: false });
     return { data: (data ?? []) as unknown as AssignmentWithRelations[], error };
   },
+  async get(id: string): Promise<{ data: Assignment | null; error: Error | null }> {
+    const { data, error } = await supabase.from("assignments").select("*").eq("id", id).maybeSingle();
+    return { data: data as Assignment | null, error };
+  },
   async create(values: TablesInsert<"assignments">): Promise<{ data: Assignment | null; error: Error | null }> {
     const { data, error } = await supabase.from("assignments").insert(values).select().single();
+    return { data: data as Assignment | null, error };
+  },
+  async update(id: string, values: TablesUpdate<"assignments">): Promise<{ data: Assignment | null; error: Error | null }> {
+    const { data, error } = await supabase.from("assignments").update(values).eq("id", id).select().single();
     return { data: data as Assignment | null, error };
   },
   async close(id: string, values: TablesUpdate<"assignments">): Promise<{ data: Assignment | null; error: Error | null }> {
@@ -125,6 +133,10 @@ export const maintenanceService = {
       .order("service_date", { ascending: false });
     return { data: (data ?? []) as unknown as MaintenanceWithVehicle[], error };
   },
+  async get(id: string): Promise<{ data: Maintenance | null; error: Error | null }> {
+    const { data, error } = await supabase.from("maintenance").select("*").eq("id", id).maybeSingle();
+    return { data: data as Maintenance | null, error };
+  },
   async create(values: TablesInsert<"maintenance">): Promise<{ data: Maintenance | null; error: Error | null }> {
     const { data, error } = await supabase.from("maintenance").insert(values).select().single();
     return { data: data as Maintenance | null, error };
@@ -143,8 +155,16 @@ export const fuelService = {
       .order("fuel_date", { ascending: false });
     return { data: (data ?? []) as unknown as FuelLogWithRelations[], error };
   },
+  async get(id: string): Promise<{ data: FuelLog | null; error: Error | null }> {
+    const { data, error } = await supabase.from("fuel_log").select("*").eq("id", id).maybeSingle();
+    return { data: data as FuelLog | null, error };
+  },
   async create(values: TablesInsert<"fuel_log">): Promise<{ data: FuelLog | null; error: Error | null }> {
     const { data, error } = await supabase.from("fuel_log").insert(values).select().single();
+    return { data: data as FuelLog | null, error };
+  },
+  async update(id: string, values: TablesUpdate<"fuel_log">): Promise<{ data: FuelLog | null; error: Error | null }> {
+    const { data, error } = await supabase.from("fuel_log").update(values).eq("id", id).select().single();
     return { data: data as FuelLog | null, error };
   },
 };
@@ -156,6 +176,10 @@ export const incidentService = {
       .select("*, vehicle:vehicles(vehicle_id, make, model), reporter:profiles!reporter_id(full_name)")
       .order("created_at", { ascending: false });
     return { data: (data ?? []) as unknown as IncidentWithRelations[], error };
+  },
+  async get(id: string): Promise<{ data: Incident | null; error: Error | null }> {
+    const { data, error } = await supabase.from("incidents").select("*").eq("id", id).maybeSingle();
+    return { data: data as Incident | null, error };
   },
   async create(values: TablesInsert<"incidents">): Promise<{ data: Incident | null; error: Error | null }> {
     const { data, error } = await supabase.from("incidents").insert(values).select().single();
