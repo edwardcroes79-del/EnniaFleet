@@ -65,6 +65,18 @@ export const profileService = {
   async softDelete(id: string) {
     return await supabase.from("profiles").update({ is_active: false }).eq("id", id);
   },
+  async hardDelete(id: string): Promise<{ error: Error | null }> {
+    const res = await fetch("/api/admin/delete-employee", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      return { error: new Error(err.error || "Failed to delete") };
+    }
+    return { error: null };
+  },
 };
 
 export const employeeService = profileService;

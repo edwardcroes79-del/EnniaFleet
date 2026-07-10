@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { settingsService, type AppSettings } from "@/services/settingsService";
 import {
   LayoutDashboard,
   Car,
@@ -17,6 +19,7 @@ import {
   LogOut,
   Menu,
   Shield,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,11 +40,19 @@ const navItems: NavItem[] = [
   { label: "Incidents", href: "/incidents", icon: AlertTriangle },
   { label: "Documents", href: "/documents", icon: FileText },
   { label: "Reports", href: "/reports", icon: BarChart3, roles: ["admin", "director"] },
+  { label: "Settings", href: "/admin/settings", icon: Settings, roles: ["admin"] },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { profile, signOut, hasRole } = useAuth();
   const router = useRouter();
+  const [settings, setSettings] = useState<AppSettings | null>(null);
+
+  useEffect(() => {
+    settingsService.get().then(({ data }) => {
+      if (data) setSettings(data);
+    });
+  }, []);
 
   const visibleNav = navItems.filter(
     (item) => !item.roles || item.roles.some((r) => hasRole([r]))
@@ -66,13 +77,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   };
 
+  const companyName = settings?.company_name || "FleetCommand";
+  const logoUrl = settings?.logo_url;
+
   return (
     <div className="flex min-h-screen">
       <aside className="hidden w-64 flex-col border-r bg-sidebar lg:flex">
         <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
-          <Shield className="h-6 w-6 text-sidebar-primary" />
+          {logoUrl ? (
+            <img src={logoUrl} alt={companyName} className="h-8 w-8 object-contain" />
+          ) : (
+            <Shield className="h-6 w-6 text-sidebar-primary" />
+          )}
           <span className="font-display text-lg font-semibold tracking-tight text-sidebar-foreground">
-            FleetCommand
+            {companyName}
           </span>
         </div>
         <nav className="flex-1 space-y-1 px-3 py-4">
@@ -120,9 +138,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </SheetTrigger>
               <SheetContent side="left" className="w-64 bg-sidebar p-0">
                 <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
-                  <Shield className="h-6 w-6 text-sidebar-primary" />
+                  {logoUrl ? (
+                    <img src={logoUrl} alt={companyName} className="h-8 w-8 object-contain" />
+                  ) : (
+                    <Shield className="h-6 w-6 text-sidebar-primary" />
+                  )}
                   <span className="font-display text-lg font-semibold text-sidebar-foreground">
-                    FleetCommand
+                    {companyName}
                   </span>
                 </div>
                 <nav className="space-y-1 px-3 py-4">
@@ -132,7 +154,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </nav>
               </SheetContent>
             </Sheet>
-            <span className="font-display text-lg font-semibold">FleetCommand</span>
+            <span className="font-display text-lg font-semibold">{companyName}</span>
           </div>
           <div className="ml-auto flex items-center gap-4">
             <span className="hidden text-sm text-muted-foreground md:inline">

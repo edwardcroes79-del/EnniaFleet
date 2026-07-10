@@ -1,0 +1,40 @@
+import { supabase } from "@/integrations/supabase/client";
+
+export interface AppSettings {
+  id: string;
+  company_name: string;
+  logo_url: string | null;
+  currency: string;
+}
+
+export const settingsService = {
+  async get(): Promise<{ data: AppSettings | null; error: Error | null }> {
+    const { data, error } = await supabase
+      .from("app_settings")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return { data: data as AppSettings | null, error };
+  },
+  async update(id: string, values: Partial<AppSettings>): Promise<{ data: AppSettings | null; error: Error | null }> {
+    const { data, error } = await supabase
+      .from("app_settings")
+      .update(values)
+      .eq("id", id)
+      .select()
+      .single();
+    return { data: data as AppSettings | null, error };
+  },
+  async uploadLogo(file: File): Promise<{ publicUrl: string | null; error: Error | null }> {
+    const ext = file.name.split(".").pop() || "png";
+    const path = `logo.${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("logos").upload(path, file, {
+      cacheControl: "3600",
+      upsert: true,
+    });
+    if (error) return { publicUrl: null, error };
+    const { data } = supabase.storage.from("logos").getPublicUrl(path);
+    return { publicUrl: data.publicUrl, error: null };
+  },
+};

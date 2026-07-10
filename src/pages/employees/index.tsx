@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { employeeService, type Employee } from "@/services/fleetService";
-import { Plus, Mail, Phone, Pencil, Trash2 } from "lucide-react";
+import { Plus, Mail, Phone, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/router";
 
@@ -15,6 +16,7 @@ function EmployeesPage() {
   const router = useRouter();
   const [rows, setRows] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const load = () => {
@@ -29,12 +31,23 @@ function EmployeesPage() {
     load();
   }, []);
 
-  const remove = async (id: string) => {
+  const softRemove = async (id: string) => {
     if (!confirm("Deactivate this employee?")) return;
     const { error } = await employeeService.softDelete(id);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else {
       toast({ title: "Employee deactivated" });
+      load();
+    }
+  };
+
+  const hardRemove = async (id: string) => {
+    setDeletingId(id);
+    const { error } = await employeeService.hardDelete(id);
+    setDeletingId(null);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else {
+      toast({ title: "Employee permanently deleted" });
       load();
     }
   };
@@ -59,7 +72,7 @@ function EmployeesPage() {
                   <TableHead>Department / Position</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>License expiry</TableHead>
-                  <TableHead className="w-24">Actions</TableHead>
+                  <TableHead className="w-32">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -80,7 +93,26 @@ function EmployeesPage() {
                     <TableCell>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => router.push(`/employees/${e.id}/edit`)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => remove(e.id)}><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => softRemove(e.id)}><Trash2 className="h-4 w-4" /></Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><AlertTriangle className="h-4 w-4" /></Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Permanently delete employee?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently remove {e.full_name} from the system and database. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => hardRemove(e.id)} disabled={deletingId === e.id}>
+                                {deletingId === e.id ? "Deleting…" : "Delete permanently"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
