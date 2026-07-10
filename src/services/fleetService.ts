@@ -294,6 +294,10 @@ export const documentService = {
     const { data, error } = await supabase.from("documents").update(values).eq("id", id).select().single();
     return { data: data as Document | null, error };
   },
+  async delete(id: string): Promise<{ error: Error | null }> {
+    const { error } = await supabase.from("documents").delete().eq("id", id);
+    return { error };
+  },
 };
 
 export const dashboardService = {

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { documentService, type DocumentWithRelations } from "@/services/fleetService";
-import { Plus, FileText, Pencil } from "lucide-react";
+import { Plus, FileText, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function DocumentsPage() {
@@ -19,13 +19,28 @@ function DocumentsPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
+  const load = () => {
     documentService.list().then(({ data, error }) => {
       setRows(data ?? []);
       if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    load();
   }, [toast]);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this document permanently?")) return;
+    const { error } = await documentService.delete(id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Document deleted" });
+      load();
+    }
+  };
 
   useEffect(() => {
     let list = rows;
@@ -55,7 +70,7 @@ function DocumentsPage() {
                   <TableHead>Title</TableHead>
                   <TableHead>Expiry</TableHead>
                   <TableHead>File</TableHead>
-                  <TableHead className="w-24">Edit</TableHead>
+                  <TableHead className="w-24">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -70,6 +85,7 @@ function DocumentsPage() {
                     <TableCell>{d.file_url ? <a href={d.file_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary hover:underline"><FileText className="h-4 w-4" /> View</a> : "—"}</TableCell>
                     <TableCell>
                       <Link href={`/documents/${d.id}/edit`}><Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button></Link>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(d.id)}><Trash2 className="h-4 w-4" /></Button>
                     </TableCell>
                   </TableRow>
                 ))}
