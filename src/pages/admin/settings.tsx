@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { settingsService, type AppSettings } from "@/services/settingsService";
+import { incidentTypeService, type IncidentType } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, X, Plus } from "lucide-react";
 
 function AdminSettingsPage() {
   const { toast } = useToast();
@@ -19,19 +22,30 @@ function AdminSettingsPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [reminderSubject, setReminderSubject] = useState("");
   const [reminderBody, setReminderBody] = useState("");
+  const [incidentTypes, setIncidentTypes] = useState<IncidentType[]>([]);
+  const [newType, setNewType] = useState("");
+
+  const loadTypes = () => {
+    incidentTypeService.list().then(({ data, error }) => {
+      if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+      else setIncidentTypes(data ?? []);
+    });
+  };
 
   useEffect(() => {
-    settingsService.get().then(({ data, error }) => {
-      if (data) {
-        setSettings(data);
-        setCompanyName(data.company_name);
-        setCurrency(data.currency);
-        setReminderSubject(data.reminder_email_subject);
-        setReminderBody(data.reminder_email_body);
-      }
-      if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-      setLoading(false);
-    });
+    Promise.all([
+      settingsService.get().then(({ data, error }) => {
+        if (data) {
+          setSettings(data);
+          setCompanyName(data.company_name);
+          setCurrency(data.currency);
+          setReminderSubject(data.reminder_email_subject);
+          setReminderBody(data.reminder_email_body);
+        }
+        if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+      }),
+      loadTypes(),
+    ]).then(() => setLoading(false));
   }, [toast]);
 
   const submit = async (e: React.FormEvent) => {
@@ -63,6 +77,26 @@ function AdminSettingsPage() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const addType = async () => {
+    if (!newType.trim()) return;
+    const { data, error } = await incidentTypeService.create(newType.trim());
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else {
+      toast({ title: "Incident type added" });
+      setNewType("");
+      loadTypes();
+    }
+  };
+
+  const removeType = async (id: string) => {
+    const { error } = await incidentTypeService.update(id, { is_active: false });
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else {
+      toast({ title: "Incident type removed" });
+      loadTypes();
     }
   };
 
@@ -125,6 +159,31 @@ function AdminSettingsPage() {
                   Use {"{{employee_name}}"}, {"{{vehicle}}"}, and {"{{expected_return_date}}"} as placeholders.
                 </p>
               </div>
+            </CardContent>
+          </Card>
+          <Card className="mt-6">
+            <CardHeader><CardTitle className="text-base">Incident types</CardTitle></CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="flex gap-2">
+                <Input value={newType} onChange={(e) => setNewType(e.target.value)} placeholder="New incident type" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addType())} />
+                <Button type="button" onClick={addType}><Plus className="h-4 w-4" /></Button>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead className="w-24">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {incidentTypes.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell>{t.name}</TableCell>
+                      <TableCell><Button type="button" variant="ghost" size="icon" onClick={() => removeType(t.id)}><X className="h-4 w-4" /></Button></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
           <div className="mt-6 flex gap-3">
