@@ -107,7 +107,11 @@ function DashboardPage() {
                 <TableBody>
                   {activeAssignments.map((a) => (
                     <TableRow key={a.id}>
-                      <TableCell className="font-mono">{a.vehicle?.vehicle_id || a.vehicle_id}</TableCell>
+                      <TableCell className="font-mono">
+                        <Link href={`/vehicles/${a.vehicle_id}`} className="text-primary hover:underline">
+                          {a.vehicle?.vehicle_id || a.vehicle_id}
+                        </Link>
+                      </TableCell>
                       <TableCell>{a.employee?.full_name || a.employee_id}</TableCell>
                       <TableCell>{a.assigned_date}</TableCell>
                       <TableCell>{a.expected_return_date || "—"}</TableCell>
