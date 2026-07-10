@@ -39,7 +39,7 @@ function EditFuelPage() {
           setOdometer(data.odometer?.toString() || "");
           setLiters(data.liters?.toString() || "");
           setCost(data.cost?.toString() || "");
-          setStation(data.station || "");
+          setStation(data.fuel_station || "");
         }
         setLoading(false);
       }),
