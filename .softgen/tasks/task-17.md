@@ -1,6 +1,6 @@
 ---
 title: Vehicle insurance number field
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [vehicles, insurance, form]
@@ -10,14 +10,13 @@ position: 17
 ---
 
 ## Notes
-Add an "Insurance number" field to the vehicle form, organized in an Insurance tab/section.
+Add an "Insurance number" field to the vehicle form, organized in an Insurance tab. The schema already provides `insurance_policy_number`, so no migration was needed.
 
 ## Checklist
-- [ ] Add insurance_number column to vehicles table if missing
-- [ ] Update src/pages/vehicles/new.tsx with Insurance number field
-- [ ] Update src/pages/vehicles/[id]/edit.tsx with Insurance number field
-- [ ] Regenerate Supabase types
-- [ ] Run build check
+- [x] Confirm vehicles table has insurance_policy_number column
+- [x] Update src/pages/vehicles/new.tsx with Insurance tab and number field
+- [x] Update src/pages/vehicles/[id]/edit.tsx with Insurance tab and number field
+- [x] Run build check
 
 ## Acceptance
 - Users can enter an insurance number when creating/editing a vehicle.
