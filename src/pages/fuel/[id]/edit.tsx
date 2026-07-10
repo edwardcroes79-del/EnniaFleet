@@ -24,7 +24,7 @@ function EditFuelPage() {
   const [odometer, setOdometer] = useState("");
   const [liters, setLiters] = useState("");
   const [cost, setCost] = useState("");
-  const [station, setStation] = useState("");
+  const [fuelStation, setFuelStation] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -39,7 +39,7 @@ function EditFuelPage() {
           setOdometer(data.odometer?.toString() || "");
           setLiters(data.liters?.toString() || "");
           setCost(data.cost?.toString() || "");
-          setStation(data.fuel_station || "");
+          setFuelStation(data.fuel_station || "");
         }
         setLoading(false);
       }),
@@ -56,7 +56,7 @@ function EditFuelPage() {
       odometer: odometer ? parseInt(odometer) : null,
       liters: liters ? parseFloat(liters) : null,
       cost: cost ? parseFloat(cost) : null,
-      station: station || null,
+      fuel_station: fuelStation || null,
     });
     setSaving(false);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -87,7 +87,7 @@ function EditFuelPage() {
               <div><Label>Odometer</Label><Input type="number" value={odometer} onChange={(e) => setOdometer(e.target.value)} /></div>
               <div><Label>Liters</Label><Input type="number" step="0.01" value={liters} onChange={(e) => setLiters(e.target.value)} /></div>
               <div><Label>Cost (AWG)</Label><Input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} /></div>
-              <div><Label>Fuel station</Label><Input value={station} onChange={(e) => setStation(e.target.value)} /></div>
+              <div><Label>Fuel station</Label><Input value={fuelStation} onChange={(e) => setFuelStation(e.target.value)} /></div>
             </CardContent>
           </Card>
           <div className="mt-6 flex gap-3">
