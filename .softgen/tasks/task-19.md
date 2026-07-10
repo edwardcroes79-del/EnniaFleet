@@ -1,6 +1,6 @@
 ---
 title: Configurable maintenance service types
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [maintenance, settings, admin]
@@ -13,11 +13,11 @@ position: 19
 Allow admins to manage maintenance service types in System settings, replacing the hardcoded dropdown list.
 
 ## Checklist
-- [ ] Create maintenance_types table with RLS and seed defaults
-- [ ] Add maintenanceTypeService to fleetService.ts
-- [ ] Update maintenance new/edit pages to use dynamic service types
-- [ ] Add maintenance type management to /admin/settings
-- [ ] Run build check
+- [x] Create maintenance_types table with RLS and seed defaults
+- [x] Add maintenanceTypeService to fleetService.ts
+- [x] Update maintenance new/edit pages to use dynamic service types
+- [x] Add maintenance type management to /admin/settings
+- [x] Run build check
 
 ## Acceptance
 - Admin can add/edit service types in Settings.
