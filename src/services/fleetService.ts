@@ -10,7 +10,7 @@ export type Employee = Profile;
 export type Assignment = Tables<"assignments">;
 export type AssignmentWithRelations = Assignment & { vehicle: Vehicle; employee: Employee };
 export type Maintenance = Tables<"maintenance">;
-export type MaintenanceWithVehicle = Maintenance & { vehicle: Pick<Vehicle, "vehicle_id" | "make" | "model"> };
+export type MaintenanceWithVehicle = Maintenance & { vehicle: Pick<Vehicle, "vehicle_id" | "make" | "model" | "is_deleted"> };
 export type FuelLog = Tables<"fuel_log">;
 export type FuelLogWithRelations = FuelLog & { vehicle: Pick<Vehicle, "vehicle_id" | "make" | "model">; driver: Pick<Employee, "full_name"> | null };
 export type Incident = Tables<"incidents">;
@@ -145,7 +145,7 @@ export const maintenanceService = {
   async list(): Promise<{ data: MaintenanceWithVehicle[]; error: Error | null }> {
     const { data, error } = await supabase
       .from("maintenance")
-      .select("*, vehicle:vehicles(vehicle_id, make, model)")
+      .select("*, vehicle:vehicles(vehicle_id, make, model, is_deleted)")
       .order("service_date", { ascending: false });
     return { data: (data ?? []) as unknown as MaintenanceWithVehicle[], error };
   },
