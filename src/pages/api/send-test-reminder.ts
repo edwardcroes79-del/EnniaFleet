@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createClient, type User } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
+import { sendEmail } from "@/lib/email";
 
 type TestReminderResult = {
   sent: boolean;
@@ -85,42 +86,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     .replace(/{{vehicle}}/g, vehicleLabel)
     .replace(/{{expected_return_date}}/g, sampleDate.toLocaleDateString());
 
-  const resendKey = process.env.RESEND_API_KEY;
-  let sent = false;
+  if (!user.email) {
+    return res.status(400).json({ error: "User email not available" });
+  }
 
-  if (resendKey) {
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: process.env.FROM_EMAIL || "noreply@fleetcommand.app",
-          to: user.email,
-          subject,
-          text: body,
-        }),
-      });
-      if (!response.ok) {
-        const err = await response.json();
-        return res.status(500).json({ error: `Failed to send test email: ${JSON.stringify(err)}` });
-      }
-      sent = true;
-    } catch (err) {
-      return res.status(500).json({ error: `Exception sending test email: ${err instanceof Error ? err.message : String(err)}` });
-    }
-  } else {
-    console.log(`[send-test-reminder] Would send test email to ${user.email}:\n${subject}\n${body}`);
-    sent = true;
+  const { sent, note, error: sendError } = await sendEmail({ to: user.email, subject, text: body });
+
+  if (!sent) {
+    return res.status(500).json({ error: sendError || "Failed to send test email" });
   }
 
   return res.status(200).json({
-    sent,
-    recipient: user.email || "",
+    sent: true,
+    recipient: user.email,
     subject,
     body,
-    note: resendKey ? undefined : "RESEND_API_KEY not configured; email logged to server console instead.",
+    note,
   });
 }

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { sendEmail } from "@/lib/email";
 
 type ReminderResult = {
   sent: number;
@@ -20,7 +21,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const resendKey = process.env.RESEND_API_KEY;
 
   if (!supabaseUrl || !serviceKey) {
     return res.status(500).json({ error: "Supabase service configuration missing" });
@@ -102,49 +102,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       .replace(/{{vehicle}}/g, vehicleLabel)
       .replace(/{{expected_return_date}}/g, new Date(expectedReturn).toLocaleDateString());
 
-    let emailSent = false;
+    const { sent, error: sendError } = await sendEmail({ to: email, subject, text: body });
 
-    if (resendKey) {
-      try {
-        const response = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${resendKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: process.env.FROM_EMAIL || "noreply@fleetcommand.app",
-            to: email,
-            subject,
-            text: body,
-          }),
-        });
-        if (!response.ok) {
-          const err = await response.json();
-          result.errors.push(`Failed to send to ${email}: ${JSON.stringify(err)}`);
-          continue;
-        }
-        emailSent = true;
-      } catch (err) {
-        result.errors.push(`Exception sending to ${email}: ${err instanceof Error ? err.message : String(err)}`);
-        continue;
-      }
-    } else {
-      console.log(`[send-reminders] Would send email to ${email}: ${subject}\n${body}`);
-      emailSent = true;
+    if (!sent) {
+      result.errors.push(`Failed to send to ${email}: ${sendError}`);
+      continue;
     }
 
-    if (emailSent) {
-      const { error: insertErr } = await adminClient.from("email_reminders").insert({
-        assignment_id: a.id,
-        reminder_type: "three_month_return",
-        recipient_email: email,
-      });
-      if (insertErr) {
-        result.errors.push(`Sent to ${email} but failed to record reminder: ${insertErr.message}`);
-      } else {
-        result.sent++;
-      }
+    const { error: insertErr } = await adminClient.from("email_reminders").insert({
+      assignment_id: a.id,
+      reminder_type: "three_month_return",
+      recipient_email: email,
+    });
+    if (insertErr) {
+      result.errors.push(`Sent to ${email} but failed to record reminder: ${insertErr.message}`);
+    } else {
+      result.sent++;
     }
   }
 
