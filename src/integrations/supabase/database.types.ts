@@ -460,6 +460,38 @@ export type Database = {
           },
         ]
       }
+      maintenance_reminders: {
+        Row: {
+          id: string
+          maintenance_id: string
+          recipient_email: string
+          reminder_type: string
+          sent_at: string | null
+        }
+        Insert: {
+          id?: string
+          maintenance_id: string
+          recipient_email: string
+          reminder_type?: string
+          sent_at?: string | null
+        }
+        Update: {
+          id?: string
+          maintenance_id?: string
+          recipient_email?: string
+          reminder_type?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_reminders_maintenance_id_fkey"
+            columns: ["maintenance_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_types: {
         Row: {
           created_at: string
