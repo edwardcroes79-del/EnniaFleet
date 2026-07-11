@@ -23,6 +23,8 @@ function AdminSettingsPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [reminderSubject, setReminderSubject] = useState("");
   const [reminderBody, setReminderBody] = useState("");
+  const [serviceReminderSubject, setServiceReminderSubject] = useState("");
+  const [serviceReminderBody, setServiceReminderBody] = useState("");
   const [incidentTypes, setIncidentTypes] = useState<IncidentType[]>([]);
   const [newType, setNewType] = useState("");
   const [maintenanceTypes, setMaintenanceTypes] = useState<MaintenanceType[]>([]);
@@ -36,6 +38,8 @@ function AdminSettingsPage() {
   const [emailSaving, setEmailSaving] = useState(false);
   const [testReminderLoading, setTestReminderLoading] = useState(false);
   const [testReminderResult, setTestReminderResult] = useState<{ sent: boolean; recipient: string; note?: string } | null>(null);
+  const [testServiceReminderLoading, setTestServiceReminderLoading] = useState(false);
+  const [testServiceReminderResult, setTestServiceReminderResult] = useState<{ sent: boolean; recipient: string; note?: string } | null>(null);
 
   const loadTypes = () => {
     incidentTypeService.list().then(({ data, error }) => {
@@ -60,6 +64,8 @@ function AdminSettingsPage() {
           setCurrency(data.currency);
           setReminderSubject(data.reminder_email_subject);
           setReminderBody(data.reminder_email_body);
+          setServiceReminderSubject(data.service_reminder_email_subject);
+          setServiceReminderBody(data.service_reminder_email_body);
         }
         if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
       }),
@@ -84,6 +90,8 @@ function AdminSettingsPage() {
         logo_url: logoUrl,
         reminder_email_subject: reminderSubject,
         reminder_email_body: reminderBody,
+        service_reminder_email_subject: serviceReminderSubject,
+        service_reminder_email_body: serviceReminderBody,
       });
       if (error) throw error;
       toast({ title: "Settings saved" });
@@ -198,6 +206,19 @@ function AdminSettingsPage() {
     }
   };
 
+  const sendTestServiceReminder = async () => {
+    setTestServiceReminderLoading(true);
+    setTestServiceReminderResult(null);
+    const { data, error } = await settingsService.sendTestMaintenanceReminder();
+    setTestServiceReminderLoading(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else if (data) {
+      setTestServiceReminderResult({ sent: data.sent, recipient: data.recipient, note: data.note });
+      toast({ title: "Test service reminder sent", description: `Sent to ${data.recipient}` });
+    }
+  };
+
   if (loading) {
     return <AppShell><div className="py-12 text-center">Loading…</div></AppShell>;
   }
@@ -257,6 +278,38 @@ function AdminSettingsPage() {
                   Use {"{{employee_name}}"}, {"{{vehicle}}"}, and {"{{expected_return_date}}"} as placeholders.
                 </p>
               </div>
+            </CardContent>
+          </Card>
+          <Card className="mt-6">
+            <CardHeader><CardTitle className="text-base">Service reminder email</CardTitle></CardHeader>
+            <CardContent className="grid gap-4">
+              <div>
+                <Label>Subject</Label>
+                <Input value={serviceReminderSubject} onChange={(e) => setServiceReminderSubject(e.target.value)} placeholder="Service reminder: {{vehicle}} is due for service soon" />
+              </div>
+              <div>
+                <Label>Body</Label>
+                <textarea
+                  value={serviceReminderBody}
+                  onChange={(e) => setServiceReminderBody(e.target.value)}
+                  rows={6}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="The vehicle {{vehicle}} is scheduled for {{service_type}} on {{next_service_due}}..."
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Use {"{{vehicle}}"}, {"{{service_type}}"}, {"{{next_service_due}}"}, {"{{mileage}}"}, {"{{service_provider}}"} as placeholders.
+                </p>
+              </div>
+              <Button type="button" onClick={sendTestServiceReminder} disabled={testServiceReminderLoading}>
+                {testServiceReminderLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Send test service reminder
+              </Button>
+              {testServiceReminderResult && (
+                <div className="rounded-md border bg-muted p-3 text-sm">
+                  <p>{testServiceReminderResult.sent ? "Test service reminder sent." : "Test service reminder logged."}</p>
+                  <p className="text-muted-foreground">Recipient: {testServiceReminderResult.recipient}</p>
+                  {testServiceReminderResult.note && <p className="text-muted-foreground">{testServiceReminderResult.note}</p>}
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card className="mt-6">

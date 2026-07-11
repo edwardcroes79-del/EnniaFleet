@@ -7,6 +7,8 @@ export interface AppSettings {
   currency: string;
   reminder_email_subject: string;
   reminder_email_body: string;
+  service_reminder_email_subject: string;
+  service_reminder_email_body: string;
 }
 
 export const settingsService = {
@@ -44,6 +46,8 @@ export const settingsService = {
         logo_url: values.logo_url || null,
         reminder_email_subject: values.reminder_email_subject || "Reminder: Vehicle return due in 3 months",
         reminder_email_body: values.reminder_email_body || "Dear {{employee_name}}, your assigned vehicle {{vehicle}} is due for return on {{expected_return_date}}. Please make the necessary arrangements.",
+        service_reminder_email_subject: values.service_reminder_email_subject || "Service reminder: {{vehicle}} is due for service soon",
+        service_reminder_email_body: values.service_reminder_email_body || "The vehicle {{vehicle}} is scheduled for {{service_type}} on {{next_service_due}}. Current mileage: {{mileage}}.",
       })
       .select("*");
     return { data: (data?.[0] as AppSettings) || null, error };
@@ -74,6 +78,25 @@ export const settingsService = {
     if (!response.ok) {
       const err = await response.json();
       return { data: null, error: new Error(err?.error || "Failed to send test reminder") };
+    }
+    const data = await response.json();
+    return { data, error: null };
+  },
+  async sendTestMaintenanceReminder(): Promise<{ data: { sent: boolean; recipient: string; subject: string; body: string; note?: string } | null; error: Error | null }> {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      return { data: null, error: new Error("Not authenticated") };
+    }
+    const response = await fetch("/api/send-test-maintenance-reminder", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      return { data: null, error: new Error(err?.error || "Failed to send test service reminder") };
     }
     const data = await response.json();
     return { data, error: null };

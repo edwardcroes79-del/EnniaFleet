@@ -1,0 +1,2 @@
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS service_reminder_email_subject text NOT NULL DEFAULT 'Service reminder: {{vehicle}} is due for service soon';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS service_reminder_email_body text NOT NULL DEFAULT 'The vehicle {{vehicle}} is scheduled for {{service_type}} on {{next_service_due}}. Current mileage: {{mileage}}.';

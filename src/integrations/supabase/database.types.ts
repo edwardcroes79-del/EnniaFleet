@@ -24,6 +24,8 @@ export type Database = {
           logo_url: string | null
           reminder_email_body: string
           reminder_email_subject: string
+          service_reminder_email_body: string
+          service_reminder_email_subject: string
           updated_at: string | null
         }
         Insert: {
@@ -34,6 +36,8 @@ export type Database = {
           logo_url?: string | null
           reminder_email_body?: string
           reminder_email_subject?: string
+          service_reminder_email_body?: string
+          service_reminder_email_subject?: string
           updated_at?: string | null
         }
         Update: {
@@ -44,6 +48,8 @@ export type Database = {
           logo_url?: string | null
           reminder_email_body?: string
           reminder_email_subject?: string
+          service_reminder_email_body?: string
+          service_reminder_email_subject?: string
           updated_at?: string | null
         }
         Relationships: []
