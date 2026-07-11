@@ -105,6 +105,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const { sent, error: sendError } = await sendEmail({ to: email, subject, text: body });
 
     if (!sent) {
+      await adminClient.from("email_reminders").insert({
+        assignment_id: a.id,
+        reminder_type: "three_month_return",
+        recipient_email: email,
+        status: "failed",
+        error_message: sendError || "Unknown send error",
+      });
       result.errors.push(`Failed to send to ${email}: ${sendError}`);
       continue;
     }
@@ -113,6 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       assignment_id: a.id,
       reminder_type: "three_month_return",
       recipient_email: email,
+      status: "sent",
     });
     if (insertErr) {
       result.errors.push(`Sent to ${email} but failed to record reminder: ${insertErr.message}`);

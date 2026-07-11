@@ -158,16 +158,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
 
     let anySent = false;
+    const sendErrors: string[] = [];
     for (const email of recipientEmails) {
       const { sent, error: sendError } = await sendEmail({ to: email, subject, text: body });
       if (!sent) {
         result.errors.push(`Failed to send to ${email}: ${sendError}`);
+        sendErrors.push(`${email}: ${sendError}`);
       } else {
         anySent = true;
       }
     }
 
     if (!anySent) {
+      await adminClient.from("maintenance_reminders").insert({
+        maintenance_id: m.id,
+        reminder_type: "two_week_service",
+        recipient_email: recipientEmails.join(", "),
+        status: "failed",
+        error_message: sendErrors.join("; ") || "All sends failed",
+      });
       continue;
     }
 
@@ -175,6 +184,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       maintenance_id: m.id,
       reminder_type: "two_week_service",
       recipient_email: recipientEmails.join(", "),
+      status: "sent",
     });
     if (insertErr) {
       result.errors.push(`Sent emails but failed to record reminder for ${vehicleLabel}: ${insertErr.message}`);

@@ -121,4 +121,22 @@ export const settingsService = {
     const data = await response.json();
     return { data, error: null };
   },
+  async getReminderHistory(): Promise<{ data: { history: any[]; nextCronRun: string } | null; error: Error | null }> {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      return { data: null, error: new Error("Not authenticated") };
+    }
+    const response = await fetch("/api/reminder-history", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      return { data: null, error: new Error(err?.error || "Failed to load reminder history") };
+    }
+    const data = await response.json();
+    return { data, error: null };
+  },
 };
