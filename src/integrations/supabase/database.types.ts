@@ -228,24 +228,30 @@ export type Database = {
       email_reminders: {
         Row: {
           assignment_id: string
+          error_message: string | null
           id: string
           recipient_email: string
           reminder_type: string
           sent_at: string | null
+          status: string
         }
         Insert: {
           assignment_id: string
+          error_message?: string | null
           id?: string
           recipient_email: string
           reminder_type?: string
           sent_at?: string | null
+          status?: string
         }
         Update: {
           assignment_id?: string
+          error_message?: string | null
           id?: string
           recipient_email?: string
           reminder_type?: string
           sent_at?: string | null
+          status?: string
         }
         Relationships: [
           {
@@ -468,25 +474,31 @@ export type Database = {
       }
       maintenance_reminders: {
         Row: {
+          error_message: string | null
           id: string
           maintenance_id: string
           recipient_email: string
           reminder_type: string
           sent_at: string | null
+          status: string
         }
         Insert: {
+          error_message?: string | null
           id?: string
           maintenance_id: string
           recipient_email: string
           reminder_type?: string
           sent_at?: string | null
+          status?: string
         }
         Update: {
+          error_message?: string | null
           id?: string
           maintenance_id?: string
           recipient_email?: string
           reminder_type?: string
           sent_at?: string | null
+          status?: string
         }
         Relationships: [
           {
