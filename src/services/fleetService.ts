@@ -146,6 +146,7 @@ export const maintenanceService = {
     const { data, error } = await supabase
       .from("maintenance")
       .select("*, vehicle:vehicles(vehicle_id, make, model, is_deleted)")
+      .eq("is_deleted", false)
       .order("service_date", { ascending: false });
     return { data: (data ?? []) as unknown as MaintenanceWithVehicle[], error };
   },
@@ -160,6 +161,10 @@ export const maintenanceService = {
   async update(id: string, values: TablesUpdate<"maintenance">): Promise<{ data: Maintenance | null; error: Error | null }> {
     const { data, error } = await supabase.from("maintenance").update(values).eq("id", id).select().single();
     return { data: data as Maintenance | null, error };
+  },
+  async softDelete(id: string): Promise<{ error: Error | null }> {
+    const { error } = await supabase.from("maintenance").update({ is_deleted: true }).eq("id", id);
+    return { error };
   },
 };
 

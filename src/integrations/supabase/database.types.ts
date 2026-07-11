@@ -424,6 +424,7 @@ export type Database = {
           cost: number | null
           created_at: string | null
           id: string
+          is_deleted: boolean
           mileage_at_service: number | null
           next_service_due: string | null
           next_service_due_mileage: number | null
@@ -439,6 +440,7 @@ export type Database = {
           cost?: number | null
           created_at?: string | null
           id?: string
+          is_deleted?: boolean
           mileage_at_service?: number | null
           next_service_due?: string | null
           next_service_due_mileage?: number | null
@@ -454,6 +456,7 @@ export type Database = {
           cost?: number | null
           created_at?: string | null
           id?: string
+          is_deleted?: boolean
           mileage_at_service?: number | null
           next_service_due?: string | null
           next_service_due_mileage?: number | null

@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { maintenanceService, type MaintenanceWithVehicle } from "@/services/fleetService";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 
@@ -16,13 +17,28 @@ function MaintenancePage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
     maintenanceService.list().then(({ data, error }) => {
       setRows(data ?? []);
       if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    load();
   }, [toast]);
+
+  const handleDelete = async (id: string) => {
+    const { error } = await maintenanceService.softDelete(id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Maintenance record removed" });
+      load();
+    }
+  };
 
   return (
     <AppShell>
@@ -43,7 +59,7 @@ function MaintenancePage() {
                   <TableHead>Provider</TableHead>
                   <TableHead>Cost</TableHead>
                   <TableHead>Next due</TableHead>
-                  <TableHead className="w-20">Edit</TableHead>
+                  <TableHead className="w-28 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -57,8 +73,25 @@ function MaintenancePage() {
                     <TableCell>{m.service_provider || "—"}</TableCell>
                     <TableCell className="font-mono">{formatCurrency(m.cost)}</TableCell>
                     <TableCell>{m.next_service_due || "—"}</TableCell>
-                    <TableCell>
-                      <Link href={`/maintenance/${m.id}/edit`}><Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button></Link>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Link href={`/maintenance/${m.id}/edit`}><Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button></Link>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove service record?</AlertDialogTitle>
+                              <AlertDialogDescription>This will hide the record from the service history. It can be restored later if needed.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(m.id)}>Remove</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
