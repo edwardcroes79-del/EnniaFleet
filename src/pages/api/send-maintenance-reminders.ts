@@ -89,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const result: MaintenanceReminderResult = { sent: 0, skipped: 0, errors: [] };
 
   for (const m of maintenanceRows || []) {
-    const vehicleArr = (m as any).vehicle as unknown as Array<{ vehicle_id: string; make: string; model: string; license_plate: string; mileage: number }> | null;
+    const vehicleArr = (m as any).vehicle as unknown as Array<{ id: string; vehicle_id: string; make: string; model: string; license_plate: string; mileage: number }> | null;
     const vehicle = vehicleArr?.[0] ?? null;
     const nextDue = m.next_service_due;
     const serviceType = m.service_type;
@@ -129,8 +129,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       .replace(/{{mileage}}/g, vehicle?.mileage?.toString() ?? "N/A")
       .replace(/{{service_provider}}/g, m.service_provider || "N/A");
 
+    let recipientEmails: string[] = [];
+    if (vehicle) {
+      const { data: assignments, error: assignmentsError } = await adminClient
+        .from("assignments")
+        .select("employee_id, employee:profiles!employee_id(email)")
+        .eq("vehicle_id", vehicle.id)
+        .eq("is_active", true)
+        .not("employee_id", "is", null);
+
+      if (assignmentsError) {
+        result.errors.push(`Failed to fetch assignments for ${vehicleLabel}: ${assignmentsError.message}`);
+        continue;
+      }
+
+      recipientEmails = (assignments || [])
+        .map((a: any) => a.employee?.email)
+        .filter(Boolean) as string[];
+    }
+
+    if (recipientEmails.length === 0) {
+      recipientEmails = adminEmails;
+    }
+
+    if (recipientEmails.length === 0) {
+      result.errors.push(`No recipients for ${vehicleLabel}`);
+      continue;
+    }
+
     let anySent = false;
-    for (const email of adminEmails) {
+    for (const email of recipientEmails) {
       const { sent, error: sendError } = await sendEmail({ to: email, subject, text: body });
       if (!sent) {
         result.errors.push(`Failed to send to ${email}: ${sendError}`);
@@ -146,7 +174,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const { error: insertErr } = await adminClient.from("maintenance_reminders").insert({
       maintenance_id: m.id,
       reminder_type: "two_week_service",
-      recipient_email: adminEmails.join(", "),
+      recipient_email: recipientEmails.join(", "),
     });
     if (insertErr) {
       result.errors.push(`Sent emails but failed to record reminder for ${vehicleLabel}: ${insertErr.message}`);
