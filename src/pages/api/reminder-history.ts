@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       error_message,
       created_at,
       assignment_id,
-      assignment:assignments(vehicle:vehicles(vehicle_id, make, model), employee:profiles!employee_id(full_name, email))
+      assignment:assignments(vehicle:vehicles(vehicle_id, make, model, is_deleted), employee:profiles!employee_id(full_name, email))
     `)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       error_message,
       created_at,
       maintenance_id,
-      maintenance:maintenance(id, vehicle_id, vehicle:vehicles(vehicle_id, make, model))
+      maintenance:maintenance(id, vehicle_id, vehicle:vehicles(vehicle_id, make, model, is_deleted))
     `)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -77,6 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const maintenanceWithVehicles = await Promise.all(
     (maintenanceRows || []).map(async (row: any) => {
       const vehicle = row.maintenance?.vehicle?.[0] ?? null;
+      if (vehicle?.is_deleted) return null;
       const vehicleId = row.maintenance?.vehicle_id ?? null;
       let vehicleLabel: string | null = null;
       let employeeEmail: string | null = null;
@@ -117,6 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       const assignment = row.assignment;
       const vehicle = assignment?.vehicle?.[0] ?? null;
       const employee = assignment?.employee?.[0] ?? null;
+      if (vehicle?.is_deleted) return null;
       return {
         id: row.id,
         type: "return" as const,
@@ -133,7 +135,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       };
     }),
     ...maintenanceWithVehicles,
-  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 50);
+  ]
+    .filter(Boolean)
+    .sort((a, b) => new Date(b!.created_at).getTime() - new Date(a!.created_at).getTime())
+    .slice(0, 50) as ReminderHistoryItem[];
 
   const now = new Date();
   const nextRun = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 9, 0, 0));
