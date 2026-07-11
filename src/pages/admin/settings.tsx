@@ -11,7 +11,27 @@ import { settingsService, type AppSettings } from "@/services/settingsService";
 import { authService } from "@/services/authService";
 import { incidentTypeService, type IncidentType, maintenanceTypeService, type MaintenanceType } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, X, Plus } from "lucide-react";
+import { Loader2, Upload, X, Plus, Clock, RefreshCw } from "lucide-react";
+
+type ReminderHistoryItem = {
+  id: string;
+  type: "return" | "service";
+  reminder_type: string;
+  recipient_email: string;
+  status: "pending" | "sent" | "failed";
+  error_message: string | null;
+  created_at: string;
+  employee_name: string | null;
+  employee_email: string | null;
+  vehicle_label: string | null;
+};
+
+function formatCountdown(totalSeconds: number) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
 
 function AdminSettingsPage() {
   const { toast } = useToast();
@@ -40,6 +60,10 @@ function AdminSettingsPage() {
   const [testReminderResult, setTestReminderResult] = useState<{ sent: boolean; recipient: string; note?: string } | null>(null);
   const [testServiceReminderLoading, setTestServiceReminderLoading] = useState(false);
   const [testServiceReminderResult, setTestServiceReminderResult] = useState<{ sent: boolean; recipient: string; note?: string } | null>(null);
+  const [reminderHistory, setReminderHistory] = useState<ReminderHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [nextCronRun, setNextCronRun] = useState<string | null>(null);
+  const [countdownSeconds, setCountdownSeconds] = useState(0);
 
   const loadTypes = () => {
     incidentTypeService.list().then(({ data, error }) => {
@@ -71,8 +95,18 @@ function AdminSettingsPage() {
       }),
       loadTypes(),
       loadMaintenanceTypes(),
+      loadReminderHistory(),
     ]).then(() => setLoading(false));
   }, [toast]);
+
+  useEffect(() => {
+    if (!nextCronRun) return;
+    const interval = setInterval(() => {
+      const next = new Date(nextCronRun);
+      setCountdownSeconds(Math.max(0, Math.floor((next.getTime() - Date.now()) / 1000)));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [nextCronRun]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -216,6 +250,22 @@ function AdminSettingsPage() {
     } else if (data) {
       setTestServiceReminderResult({ sent: data.sent, recipient: data.recipient, note: data.note });
       toast({ title: "Test service reminder sent", description: `Sent to ${data.recipient}` });
+    }
+  };
+
+  const loadReminderHistory = async () => {
+    setHistoryLoading(true);
+    const { data, error } = await settingsService.getReminderHistory();
+    setHistoryLoading(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (data) {
+      setReminderHistory(data.history);
+      setNextCronRun(data.nextCronRun);
+      const next = new Date(data.nextCronRun);
+      setCountdownSeconds(Math.max(0, Math.floor((next.getTime() - Date.now()) / 1000)));
     }
   };
 
@@ -410,6 +460,57 @@ function AdminSettingsPage() {
                 <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" />
               </div>
               <Button type="button" onClick={changePassword} disabled={passwordSaving}>{passwordSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Update password</Button>
+            </CardContent>
+          </Card>
+          <Card className="mt-6">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Cron job monitor</CardTitle>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                <span>Next run in: {formatCountdown(countdownSeconds)}</span>
+              </div>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">Recent reminder emails sent by the daily cron jobs.</p>
+                <Button type="button" variant="outline" size="sm" onClick={loadReminderHistory} disabled={historyLoading}>
+                  {historyLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+                </Button>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Vehicle</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reminderHistory.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">No reminder history yet.</TableCell>
+                    </TableRow>
+                  )}
+                  {reminderHistory.map((h) => (
+                    <TableRow key={h.id}>
+                      <TableCell>
+                        <div>{h.employee_name || h.recipient_email}</div>
+                        {h.employee_email && <div className="text-xs text-muted-foreground">{h.employee_email}</div>}
+                      </TableCell>
+                      <TableCell>{h.vehicle_label || "—"}</TableCell>
+                      <TableCell className="capitalize">{h.reminder_type.replace(/_/g, " ")}</TableCell>
+                      <TableCell>{new Date(h.created_at).toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Badge variant={h.status === "sent" ? "default" : "destructive"}>{h.status}</Badge>
+                        {h.error_message && <p className="mt-1 max-w-xs truncate text-xs text-destructive">{h.error_message}</p>}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
           <div className="mt-6 flex gap-3">
