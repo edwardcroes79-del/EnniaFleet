@@ -101,4 +101,24 @@ export const settingsService = {
     const data = await response.json();
     return { data, error: null };
   },
+  async sendManualServiceReminder(maintenanceId: string): Promise<{ data: { sent: boolean; recipient: string; note?: string } | null; error: Error | null }> {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      return { data: null, error: new Error("Not authenticated") };
+    }
+    const response = await fetch("/api/send-manual-service-reminder", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+      body: JSON.stringify({ maintenance_id: maintenanceId }),
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      return { data: null, error: new Error(err?.error || "Failed to send manual service reminder") };
+    }
+    const data = await response.json();
+    return { data, error: null };
+  },
 };

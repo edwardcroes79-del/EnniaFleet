@@ -3,10 +3,12 @@ import { AppShell } from "@/components/AppShell";
 import { withAuth } from "@/components/withAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { vehicleService, maintenanceService, fuelService, assignmentService, type Vehicle, type MaintenanceWithVehicle, type FuelLogWithRelations, type AssignmentWithRelations } from "@/services/fleetService";
+import { settingsService } from "@/services/settingsService";
 import { useToast } from "@/hooks/use-toast";
-import { Car, Users, Wrench, Fuel, AlertTriangle } from "lucide-react";
+import { Car, Users, Wrench, Fuel, AlertTriangle, Send, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
 
@@ -36,6 +38,10 @@ function isOverdue(date: string | null) {
   return date ? new Date(date) < new Date() : false;
 }
 
+function isWithinOrOverdue(date: string | null, days: number) {
+  return isOverdue(date) || isWithinDays(date, days);
+}
+
 function DashboardPage() {
   const { toast } = useToast();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -43,6 +49,7 @@ function DashboardPage() {
   const [fuel, setFuel] = useState<FuelLogWithRelations[]>([]);
   const [assignments, setAssignments] = useState<AssignmentWithRelations[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [sendingReminder, setSendingReminder] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -67,12 +74,30 @@ function DashboardPage() {
     maintenance: vehicles.filter((v) => v.status === "Maintenance").length,
   };
 
-  const upcomingService = vehicles.filter((v) => v.service_due_date && (isWithinDays(v.service_due_date, 14) || isOverdue(v.service_due_date))).slice(0, 5);
-  const expiringDocs = vehicles.filter((v) => (v.insurance_expiry && isWithinDays(v.insurance_expiry, 14)) || (v.registration_expiry && isWithinDays(v.registration_expiry, 14))).slice(0, 5);
+  const upcomingService = vehicles.filter((v) => v.service_due_date && isWithinOrOverdue(v.service_due_date, 14)).slice(0, 5);
+  const expiringDocs = vehicles.filter((v) => (v.insurance_expiry && isWithinOrOverdue(v.insurance_expiry, 14)) || (v.registration_expiry && isWithinOrOverdue(v.registration_expiry, 14))).slice(0, 5);
   const activeAssignments = assignments.filter((a) => !a.actual_return_date).slice(0, 5);
   const totalFuel = fuel.reduce((sum, f) => sum + (f.cost ?? 0), 0);
   const totalMaintenance = maintenance.reduce((sum, m) => sum + (m.cost ?? 0), 0);
   const totalVehicleCost = vehicles.reduce((sum, v) => sum + (v.purchase_price ?? 0), 0);
+
+  const dueServiceRecords = maintenance.filter(
+    (m) =>
+      ["Small service", "General service"].includes(m.service_type) &&
+      m.next_service_due &&
+      isWithinOrOverdue(m.next_service_due, 14)
+  );
+
+  const handleSendServiceReminder = async (id: string) => {
+    setSendingReminder(id);
+    const { data, error } = await settingsService.sendManualServiceReminder(id);
+    setSendingReminder(null);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else if (data) {
+      toast({ title: "Reminder sent", description: data.note || `Sent to ${data.recipient || "admins"}` });
+    }
+  };
 
   return (
     <AppShell>
@@ -127,8 +152,32 @@ function DashboardPage() {
             <CardContent className="space-y-3">
               {!loaded ? <p className="text-muted-foreground">Loading…</p> :
               <>
+                <p className="text-sm text-muted-foreground">{dueServiceRecords.length} service reminder(s) due</p>
                 <p className="text-sm text-muted-foreground">{upcomingService.length} vehicle(s) due for service</p>
                 <p className="text-sm text-muted-foreground">{expiringDocs.length} registration/insurance expiring soon</p>
+                {dueServiceRecords.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Due service records</p>
+                    {dueServiceRecords.map((m) => (
+                      <div key={m.id} className="flex items-center justify-between gap-2 rounded border p-2 text-sm">
+                        <div className="min-w-0">
+                          <p className="truncate font-mono">{m.vehicle?.vehicle_id || m.vehicle_id}</p>
+                          <p className="truncate text-xs text-muted-foreground">{m.service_type} · {m.next_service_due}</p>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="shrink-0"
+                          onClick={() => handleSendServiceReminder(m.id)}
+                          disabled={sendingReminder === m.id}
+                          title="Send service reminder"
+                        >
+                          {sendingReminder === m.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {upcomingService.map((v) => (
                   <div key={v.id} className="flex items-center justify-between rounded border p-2 text-sm">
                     <span>{v.vehicle_id}</span>
