@@ -126,17 +126,29 @@ export const settingsService = {
     if (sessionError || !sessionData.session) {
       return { data: null, error: new Error("Not authenticated") };
     }
-    const response = await fetch("/api/reminder-history", {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionData.session.access_token}`,
-      },
-    });
-    if (!response.ok) {
-      const err = await response.json();
-      return { data: null, error: new Error(err?.error || "Failed to load reminder history") };
+    try {
+      const response = await fetch("/api/reminder-history", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+      });
+      if (!response.ok) {
+        let message = `Failed to load reminder history (${response.status})`;
+        try {
+          const err = await response.json();
+          if (err?.error) message = err.error;
+          if (err?.details) message += `: ${err.details}`;
+        } catch {
+          const text = await response.text();
+          if (text) message += `: ${text.slice(0, 200)}`;
+        }
+        return { data: null, error: new Error(message) };
+      }
+      const data = await response.json();
+      return { data, error: null };
+    } catch (err) {
+      return { data: null, error: err instanceof Error ? err : new Error("Network error loading reminder history") };
     }
-    const data = await response.json();
-    return { data, error: null };
   },
 };
