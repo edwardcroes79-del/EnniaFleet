@@ -108,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const result = await sendEmail({
       to: admin.email as string,
       subject: renderedSubject,
-      body: renderedBody,
+      text: renderedBody,
     });
     if (!result.sent) {
       note = result.note;
