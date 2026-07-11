@@ -67,25 +67,29 @@ function DashboardPage() {
     });
   }, [toast]);
 
+  const activeVehicles = vehicles.filter((v) => !v.is_deleted);
+
   const counts = {
-    total: vehicles.length,
-    available: vehicles.filter((v) => v.status === "Available").length,
-    assigned: vehicles.filter((v) => v.status === "Assigned").length,
-    maintenance: vehicles.filter((v) => v.status === "Maintenance").length,
+    total: activeVehicles.length,
+    available: activeVehicles.filter((v) => v.status === "Available").length,
+    assigned: activeVehicles.filter((v) => v.status === "Assigned").length,
+    maintenance: activeVehicles.filter((v) => v.status === "Maintenance").length,
   };
 
-  const upcomingService = vehicles.filter((v) => v.service_due_date && isWithinOrOverdue(v.service_due_date, 14)).slice(0, 5);
-  const expiringDocs = vehicles.filter((v) => (v.insurance_expiry && isWithinOrOverdue(v.insurance_expiry, 14)) || (v.registration_expiry && isWithinOrOverdue(v.registration_expiry, 14))).slice(0, 5);
-  const activeAssignments = assignments.filter((a) => !a.actual_return_date).slice(0, 5);
+  const upcomingService = activeVehicles.filter((v) => v.service_due_date && isWithinOrOverdue(v.service_due_date, 14)).slice(0, 5);
+  const expiringDocs = activeVehicles.filter((v) => (v.insurance_expiry && isWithinOrOverdue(v.insurance_expiry, 14)) || (v.registration_expiry && isWithinOrOverdue(v.registration_expiry, 14))).slice(0, 5);
+  const activeAssignments = assignments.filter((a) => !a.actual_return_date && a.vehicle && !a.vehicle.is_deleted).slice(0, 5);
   const totalFuel = fuel.reduce((sum, f) => sum + (f.cost ?? 0), 0);
   const totalMaintenance = maintenance.reduce((sum, m) => sum + (m.cost ?? 0), 0);
-  const totalVehicleCost = vehicles.reduce((sum, v) => sum + (v.purchase_price ?? 0), 0);
+  const totalVehicleCost = activeVehicles.reduce((sum, v) => sum + (v.purchase_price ?? 0), 0);
 
   const dueServiceRecords = maintenance.filter(
     (m) =>
       ["Small service", "General service"].includes(m.service_type) &&
       m.next_service_due &&
-      isWithinOrOverdue(m.next_service_due, 14)
+      isWithinOrOverdue(m.next_service_due, 14) &&
+      m.vehicle &&
+      !m.vehicle.is_deleted
   );
 
   const handleSendServiceReminder = async (id: string) => {
