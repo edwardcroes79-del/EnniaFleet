@@ -71,15 +71,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ sent: false, note: "Reminder already sent for this service record." });
   }
 
-  const { data: admins, error: adminsError } = await supabase
-    .from("profiles")
-    .select("email")
-    .eq("role", "admin")
-    .not("email", "is", null);
+  const { data: assignments, error: assignmentsError } = await supabase
+    .from("assignments")
+    .select("employee_id, employee:profiles!employee_id(email)")
+    .eq("vehicle_id", maintenance.vehicle_id)
+    .eq("is_active", true)
+    .not("employee_id", "is", null);
 
-  if (adminsError) {
-    return res.status(500).json({ error: adminsError.message });
+  if (assignmentsError) {
+    return res.status(500).json({ error: assignmentsError.message });
   }
+
+  let recipientEmails: string[] = [];
+  if (assignments && assignments.length > 0) {
+    recipientEmails = assignments
+      .map((a: any) => a.employee?.email)
+      .filter(Boolean) as string[];
+  }
+
+  if (recipientEmails.length === 0) {
+    const { data: admins, error: adminsError } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("role", "admin")
+      .not("email", "is", null);
+    if (adminsError) return res.status(500).json({ error: adminsError.message });
+    recipientEmails = (admins || []).map((a) => a.email as string).filter(Boolean);
+  }
+
+  const recipientList = recipientEmails.join(", ");
 
   const { data: settings } = await supabase
     .from("app_settings")
@@ -104,9 +124,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const renderedBody = renderTemplate(bodyTemplate, vars);
 
   let note: string | undefined;
-  for (const admin of admins || []) {
+  for (const email of recipientEmails) {
     const result = await sendEmail({
-      to: admin.email as string,
+      to: email,
       subject: renderedSubject,
       text: renderedBody,
     });
@@ -117,13 +137,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await supabase.from("maintenance_reminders").insert({
     maintenance_id,
-    recipient_email: (admins || []).map((a) => a.email).filter(Boolean).join(", "),
+    recipient_email: recipientList,
     reminder_type: "manual_service_due",
   });
 
   return res.status(200).json({
     sent: true,
-    recipient: (admins || []).map((a) => a.email).filter(Boolean).join(", "),
+    recipient: recipientList,
     subject: renderedSubject,
     body: renderedBody,
     note,
