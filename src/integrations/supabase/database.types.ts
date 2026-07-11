@@ -228,6 +228,7 @@ export type Database = {
       email_reminders: {
         Row: {
           assignment_id: string
+          created_at: string
           error_message: string | null
           id: string
           recipient_email: string
@@ -237,6 +238,7 @@ export type Database = {
         }
         Insert: {
           assignment_id: string
+          created_at?: string
           error_message?: string | null
           id?: string
           recipient_email: string
@@ -246,6 +248,7 @@ export type Database = {
         }
         Update: {
           assignment_id?: string
+          created_at?: string
           error_message?: string | null
           id?: string
           recipient_email?: string
@@ -474,6 +477,7 @@ export type Database = {
       }
       maintenance_reminders: {
         Row: {
+          created_at: string
           error_message: string | null
           id: string
           maintenance_id: string
@@ -483,6 +487,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          created_at?: string
           error_message?: string | null
           id?: string
           maintenance_id: string
@@ -492,6 +497,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          created_at?: string
           error_message?: string | null
           id?: string
           maintenance_id?: string

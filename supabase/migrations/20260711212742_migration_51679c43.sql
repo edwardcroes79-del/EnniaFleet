@@ -1,0 +1,2 @@
+ALTER TABLE email_reminders ADD COLUMN IF NOT EXISTS created_at timestamp with time zone NOT NULL DEFAULT now();
+ALTER TABLE maintenance_reminders ADD COLUMN IF NOT EXISTS created_at timestamp with time zone NOT NULL DEFAULT now();

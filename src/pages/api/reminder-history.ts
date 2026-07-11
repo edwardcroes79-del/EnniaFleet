@@ -65,8 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       error_message,
       created_at,
       maintenance_id,
-      maintenance:maintenance(vehicle:vehicles(vehicle_id, make, model)),
-      maintenance:maintenance!inner(vehicle_id)
+      maintenance:maintenance(id, vehicle_id, vehicle:vehicles(vehicle_id, make, model))
     `)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -77,21 +76,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   const maintenanceWithVehicles = await Promise.all(
     (maintenanceRows || []).map(async (row: any) => {
-      const vehicleId = row.maintenance?.vehicle_id;
+      const vehicle = row.maintenance?.vehicle?.[0] ?? null;
+      const vehicleId = row.maintenance?.vehicle_id ?? null;
       let vehicleLabel: string | null = null;
       let employeeEmail: string | null = null;
       let employeeName: string | null = null;
+      if (vehicle) {
+        vehicleLabel = `${vehicle.vehicle_id} — ${vehicle.make} ${vehicle.model}`;
+      }
       if (vehicleId) {
         const { data: assignmentRows } = await adminClient
           .from("assignments")
-          .select("vehicle:vehicles(vehicle_id, make, model), employee:profiles!employee_id(full_name, email)")
+          .select("employee:profiles!employee_id(full_name, email)")
           .eq("vehicle_id", vehicleId)
           .eq("is_active", true)
           .limit(1);
-        const assignment = assignmentRows?.[0] as any;
-        const vehicle = assignment?.vehicle?.[0] ?? row.maintenance?.vehicle?.[0] ?? null;
-        const employee = assignment?.employee?.[0] ?? null;
-        vehicleLabel = vehicle ? `${vehicle.vehicle_id} — ${vehicle.make} ${vehicle.model}` : null;
+        const employee = (assignmentRows?.[0] as any)?.employee?.[0] ?? null;
         employeeEmail = employee?.email ?? null;
         employeeName = employee?.full_name ?? null;
       }
