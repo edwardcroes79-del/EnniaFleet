@@ -59,4 +59,23 @@ export const settingsService = {
     const { data } = supabase.storage.from("logos").getPublicUrl(path);
     return { publicUrl: data.publicUrl, error: null };
   },
+  async sendTestReminder(): Promise<{ data: { sent: boolean; recipient: string; subject: string; body: string; note?: string } | null; error: Error | null }> {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      return { data: null, error: new Error("Not authenticated") };
+    }
+    const response = await fetch("/api/send-test-reminder", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      return { data: null, error: new Error(err?.error || "Failed to send test reminder") };
+    }
+    const data = await response.json();
+    return { data, error: null };
+  },
 };

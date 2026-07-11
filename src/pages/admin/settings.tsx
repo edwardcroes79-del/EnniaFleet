@@ -34,6 +34,8 @@ function AdminSettingsPage() {
   const [newEmail, setNewEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
   const [emailSaving, setEmailSaving] = useState(false);
+  const [testReminderLoading, setTestReminderLoading] = useState(false);
+  const [testReminderResult, setTestReminderResult] = useState<{ sent: boolean; recipient: string; note?: string } | null>(null);
 
   const loadTypes = () => {
     incidentTypeService.list().then(({ data, error }) => {
@@ -183,6 +185,19 @@ function AdminSettingsPage() {
     }
   };
 
+  const sendTestReminder = async () => {
+    setTestReminderLoading(true);
+    setTestReminderResult(null);
+    const { data, error } = await settingsService.sendTestReminder();
+    setTestReminderLoading(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else if (data) {
+      setTestReminderResult({ sent: data.sent, recipient: data.recipient, note: data.note });
+      toast({ title: "Test reminder sent", description: `Sent to ${data.recipient}` });
+    }
+  };
+
   if (loading) {
     return <AppShell><div className="py-12 text-center">Loading…</div></AppShell>;
   }
@@ -242,6 +257,24 @@ function AdminSettingsPage() {
                   Use {"{{employee_name}}"}, {"{{vehicle}}"}, and {"{{expected_return_date}}"} as placeholders.
                 </p>
               </div>
+            </CardContent>
+          </Card>
+          <Card className="mt-6">
+            <CardHeader><CardTitle className="text-base">Test reminder</CardTitle></CardHeader>
+            <CardContent className="grid gap-4">
+              <p className="text-sm text-muted-foreground">
+                Send a test reminder email to yourself using the configured subject and body above. Placeholders will use sample data.
+              </p>
+              <Button type="button" onClick={sendTestReminder} disabled={testReminderLoading}>
+                {testReminderLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Send test reminder
+              </Button>
+              {testReminderResult && (
+                <div className="rounded-md border bg-muted p-3 text-sm">
+                  <p>{testReminderResult.sent ? "Test reminder sent." : "Test reminder logged."}</p>
+                  <p className="text-muted-foreground">Recipient: {testReminderResult.recipient}</p>
+                  {testReminderResult.note && <p className="text-muted-foreground">{testReminderResult.note}</p>}
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card className="mt-6">
