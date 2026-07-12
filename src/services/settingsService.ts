@@ -121,7 +121,7 @@ export const settingsService = {
     const data = await response.json();
     return { data, error: null };
   },
-  async getReminderHistory(): Promise<{ data: { history: any[]; nextCronRun: string } | null; error: Error | null }> {
+  async getReminderHistory(): Promise<{ data: { history: any[]; nextCronRun: string; nextReturnRun: string; nextServiceRun: string; schedule: { returnReminders: { time: string; path: string }; serviceReminders: { time: string; path: string } } } | null; error: Error | null }> {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !sessionData.session) {
       return { data: null, error: new Error("Not authenticated") };

@@ -152,14 +152,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const limitedHistory = history.slice(0, 50);
 
     const now = new Date();
-    const nextRun = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 9, 0, 0));
-    if (nextRun.getTime() <= now.getTime()) {
-      nextRun.setUTCDate(nextRun.getUTCDate() + 1);
-    }
+    const nextReturnRun = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (now.getUTCHours() >= 9 ? 1 : 0), 9, 0, 0));
+    const nextServiceRun = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (now.getUTCHours() >= 9 ? 1 : 0), 9, 0, 0));
 
     return res.status(200).json({
       history: limitedHistory,
-      nextCronRun: nextRun.toISOString(),
+      nextCronRun: nextReturnRun.toISOString(),
+      nextReturnRun: nextReturnRun.toISOString(),
+      nextServiceRun: nextServiceRun.toISOString(),
+      schedule: {
+        returnReminders: { time: "09:00 UTC", path: "/api/send-reminders" },
+        serviceReminders: { time: "09:00 UTC", path: "/api/send-maintenance-reminders" },
+      },
     });
   } catch (err) {
     console.error("[reminder-history] error:", err);

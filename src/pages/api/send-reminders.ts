@@ -39,8 +39,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   const { data: assignments, error: assignmentsError } = await adminClient
     .from("assignments")
-    .select("id, expected_return_date, vehicle:vehicles(id, vehicle_id, make, model), employee:profiles!employee_id(id, full_name, email)")
+    .select("id, expected_return_date, vehicle:vehicles(id, vehicle_id, make, model, is_deleted), employee:profiles!employee_id(id, full_name, email)")
     .eq("is_active", true)
+    .eq("vehicles.is_deleted", false)
     .gte("expected_return_date", startOfDay)
     .lt("expected_return_date", endOfDay);
 
@@ -67,9 +68,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   for (const a of assignments || []) {
     const employeeArr = a.employee as unknown as Array<{ full_name: string; email: string }> | null;
-    const vehicleArr = a.vehicle as unknown as Array<{ vehicle_id: string; make: string; model: string }> | null;
+    const vehicleArr = a.vehicle as unknown as Array<{ vehicle_id: string; make: string; model: string; is_deleted?: boolean }> | null;
     const employee = employeeArr?.[0] ?? null;
     const vehicle = vehicleArr?.[0] ?? null;
+
+    if (vehicle?.is_deleted) continue;
+
     const email = employee?.email;
     const expectedReturn = a.expected_return_date;
 

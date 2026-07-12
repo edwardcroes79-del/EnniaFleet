@@ -64,6 +64,11 @@ function AdminSettingsPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [nextCronRun, setNextCronRun] = useState<string | null>(null);
   const [countdownSeconds, setCountdownSeconds] = useState(0);
+  const [nextReturnRun, setNextReturnRun] = useState<string | null>(null);
+  const [nextServiceRun, setNextServiceRun] = useState<string | null>(null);
+  const [returnCountdownSeconds, setReturnCountdownSeconds] = useState(0);
+  const [serviceCountdownSeconds, setServiceCountdownSeconds] = useState(0);
+  const [cronSchedule, setCronSchedule] = useState<{ returnReminders: { time: string; path: string }; serviceReminders: { time: string; path: string } } | null>(null);
 
   const loadTypes = () => {
     incidentTypeService.list().then(({ data, error }) => {
@@ -107,6 +112,20 @@ function AdminSettingsPage() {
     }, 1000);
     return () => clearInterval(interval);
   }, [nextCronRun]);
+
+  useEffect(() => {
+    if (!nextReturnRun && !nextServiceRun) return;
+    const interval = setInterval(() => {
+      const now = Date.now();
+      if (nextReturnRun) {
+        setReturnCountdownSeconds(Math.max(0, Math.floor((new Date(nextReturnRun).getTime() - now) / 1000)));
+      }
+      if (nextServiceRun) {
+        setServiceCountdownSeconds(Math.max(0, Math.floor((new Date(nextServiceRun).getTime() - now) / 1000)));
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [nextReturnRun, nextServiceRun]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -264,8 +283,14 @@ function AdminSettingsPage() {
     if (data) {
       setReminderHistory(data.history);
       setNextCronRun(data.nextCronRun);
-      const next = new Date(data.nextCronRun);
-      setCountdownSeconds(Math.max(0, Math.floor((next.getTime() - Date.now()) / 1000)));
+      setNextReturnRun(data.nextReturnRun);
+      setNextServiceRun(data.nextServiceRun);
+      setCronSchedule(data.schedule);
+      const now = Date.now();
+      const returnNext = new Date(data.nextReturnRun).getTime();
+      const serviceNext = new Date(data.nextServiceRun).getTime();
+      setReturnCountdownSeconds(Math.max(0, Math.floor((returnNext - now) / 1000)));
+      setServiceCountdownSeconds(Math.max(0, Math.floor((serviceNext - now) / 1000)));
     }
   };
 
@@ -463,11 +488,17 @@ function AdminSettingsPage() {
             </CardContent>
           </Card>
           <Card className="mt-6">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader>
               <CardTitle className="text-base">Cron job monitor</CardTitle>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>Next run in: {formatCountdown(countdownSeconds)}</span>
+              <div className="mt-2 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2">
+                  <Clock className="h-4 w-4" />
+                  <span>Return reminders: <span className="font-medium text-foreground">{cronSchedule?.returnReminders.time ?? "09:00 UTC"}</span> — {formatCountdown(returnCountdownSeconds)}</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2">
+                  <Clock className="h-4 w-4" />
+                  <span>Service reminders: <span className="font-medium text-foreground">{cronSchedule?.serviceReminders.time ?? "09:00 UTC"}</span> — {formatCountdown(serviceCountdownSeconds)}</span>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="grid gap-4">

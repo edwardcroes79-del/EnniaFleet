@@ -47,8 +47,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       mileage_at_service,
       cost,
       service_provider,
-      vehicle:vehicles(id, vehicle_id, make, model, license_plate, mileage)
+      vehicle:vehicles(id, vehicle_id, make, model, license_plate, mileage, is_deleted)
     `)
+    .eq("is_deleted", false)
+    .eq("vehicles.is_deleted", false)
     .in("service_type", ["Small service", "General service"])
     .gte("next_service_due", startOfDay)
     .lte("next_service_due", endOfWindow);
@@ -89,8 +91,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const result: MaintenanceReminderResult = { sent: 0, skipped: 0, errors: [] };
 
   for (const m of maintenanceRows || []) {
-    const vehicleArr = (m as any).vehicle as unknown as Array<{ id: string; vehicle_id: string; make: string; model: string; license_plate: string; mileage: number }> | null;
+    const vehicleArr = (m as any).vehicle as unknown as Array<{ id: string; vehicle_id: string; make: string; model: string; license_plate: string; mileage: number; is_deleted?: boolean }> | null;
     const vehicle = vehicleArr?.[0] ?? null;
+
+    if (vehicle?.is_deleted) continue;
+
     const nextDue = m.next_service_due;
     const serviceType = m.service_type;
 
