@@ -274,6 +274,7 @@ function AdminSettingsPage() {
 
   const loadReminderHistory = async () => {
     setHistoryLoading(true);
+    setReminderHistory([]);
     const { data, error } = await settingsService.getReminderHistory();
     setHistoryLoading(false);
     if (error) {

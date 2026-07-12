@@ -75,12 +75,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             .from("assignments")
             .select("id, vehicle_id, employee:profiles!employee_id(id, full_name, email), vehicle:vehicles!vehicle_id(id, vehicle_id, make, model, is_deleted)")
             .in("id", assignmentIds)
+            .eq("is_deleted", false)
         : { data: [], error: null },
       maintenanceIds.length > 0
         ? adminClient
             .from("maintenance")
             .select("id, vehicle_id, vehicle:vehicles!vehicle_id(id, vehicle_id, make, model, is_deleted)")
             .in("id", maintenanceIds)
+            .eq("is_deleted", false)
         : { data: [], error: null },
     ]);
 
