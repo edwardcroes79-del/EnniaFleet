@@ -16,9 +16,17 @@ type ReminderHistoryItem = {
   vehicle_label: string | null;
 };
 
+type ScheduleInfo = {
+  returnReminders: { time: string; path: string };
+  serviceReminders: { time: string; path: string };
+};
+
 type ReminderHistoryResponse = {
   history: ReminderHistoryItem[];
   nextCronRun: string;
+  nextReturnRun: string;
+  nextServiceRun: string;
+  schedule: ScheduleInfo;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ReminderHistoryResponse | { error: string; details?: string }>) {
