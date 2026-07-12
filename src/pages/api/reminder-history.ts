@@ -50,12 +50,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         .from("email_reminders")
         .select("id, reminder_type, recipient_email, status, error_message, created_at, assignment_id")
         .order("created_at", { ascending: false })
-        .limit(50),
+        .limit(100),
       adminClient
         .from("maintenance_reminders")
         .select("id, reminder_type, recipient_email, status, error_message, created_at, maintenance_id")
         .order("created_at", { ascending: false })
-        .limit(50),
+        .limit(100),
     ]);
 
     if (emailError) throw emailError;
@@ -75,16 +75,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             .from("assignments")
             .select("id, vehicle_id, employee:profiles!employee_id(id, full_name, email), vehicle:vehicles!vehicle_id(id, vehicle_id, make, model, is_deleted)")
             .in("id", assignmentIds)
-            .eq("is_deleted", false)
-            .eq("vehicles.is_deleted", false)
         : { data: [], error: null },
       maintenanceIds.length > 0
         ? adminClient
             .from("maintenance")
             .select("id, vehicle_id, vehicle:vehicles!vehicle_id(id, vehicle_id, make, model, is_deleted)")
             .in("id", maintenanceIds)
-            .eq("is_deleted", false)
-            .eq("vehicles.is_deleted", false)
         : { data: [], error: null },
     ]);
 
@@ -93,11 +89,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const assignmentMap = new Map<string, any>();
     for (const a of (assignmentResult.data || []) as any[]) {
+      const vehicle = a.vehicle?.[0] ?? null;
+      if (vehicle?.is_deleted) continue;
       assignmentMap.set(a.id, a);
     }
 
     const maintenanceMap = new Map<string, any>();
     for (const m of (maintenanceResult.data || []) as any[]) {
+      const vehicle = m.vehicle?.[0] ?? null;
+      if (vehicle?.is_deleted) continue;
       maintenanceMap.set(m.id, m);
     }
 
@@ -164,14 +164,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const limitedHistory = history.slice(0, 50);
 
     const now = new Date();
-    const nextReturnRun = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (now.getUTCHours() >= 9 ? 1 : 0), 9, 0, 0));
-    const nextServiceRun = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (now.getUTCHours() >= 9 ? 1 : 0), 9, 0, 0));
+    const nextRun = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (now.getUTCHours() >= 9 ? 1 : 0), 9, 0, 0));
 
     return res.status(200).json({
       history: limitedHistory,
-      nextCronRun: nextReturnRun.toISOString(),
-      nextReturnRun: nextReturnRun.toISOString(),
-      nextServiceRun: nextServiceRun.toISOString(),
+      nextCronRun: nextRun.toISOString(),
+      nextReturnRun: nextRun.toISOString(),
+      nextServiceRun: nextRun.toISOString(),
       schedule: {
         returnReminders: { time: "09:00 UTC", path: "/api/send-reminders" },
         serviceReminders: { time: "09:00 UTC", path: "/api/send-maintenance-reminders" },
