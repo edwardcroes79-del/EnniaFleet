@@ -34,14 +34,13 @@ function NewFuelPage() {
     setSaving(true);
     const { error } = await fuelService.create({
       vehicle_id: vehicleId,
-      employee_id: profile?.id || null,
+      driver_id: profile?.id || null,
       fuel_date: date,
       odometer: odometer ? parseInt(odometer) : null,
       liters: liters ? parseFloat(liters) : null,
       cost: cost ? parseFloat(cost) : null,
-      station: station || null,
-      driver_name: profile?.full_name || null,
-    } as any);
+      fuel_station: station || null,
+    });
     setSaving(false);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else {
