@@ -73,13 +73,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       assignmentIds.length > 0
         ? adminClient
             .from("assignments")
-            .select("id, vehicle_id, employee:profiles!employee_id(id, full_name, email), vehicle:vehicles!vehicle_id(id, vehicle_id, make, model, is_deleted)")
+            .select("id, vehicle_id, employee:profiles!employee_id(id, full_name, email)")
             .in("id", assignmentIds)
         : { data: [], error: null },
       maintenanceIds.length > 0
         ? adminClient
             .from("maintenance")
-            .select("id, vehicle_id, vehicle:vehicles!vehicle_id(id, vehicle_id, make, model, is_deleted)")
+            .select("id, vehicle_id")
             .in("id", maintenanceIds)
         : { data: [], error: null },
     ]);
@@ -87,18 +87,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (assignmentResult.error) throw assignmentResult.error;
     if (maintenanceResult.error) throw maintenanceResult.error;
 
+    const referencedVehicleIds = new Set<string>();
+    for (const a of (assignmentResult.data || []) as any[]) {
+      if (a.vehicle_id) referencedVehicleIds.add(a.vehicle_id);
+    }
+    for (const m of (maintenanceResult.data || []) as any[]) {
+      if (m.vehicle_id) referencedVehicleIds.add(m.vehicle_id);
+    }
+
+    const { data: validVehicles, error: vehiclesError } = referencedVehicleIds.size > 0
+      ? await adminClient
+          .from("vehicles")
+          .select("id, vehicle_id, make, model, is_deleted")
+          .in("id", Array.from(referencedVehicleIds))
+      : { data: [], error: null };
+
+    if (vehiclesError) throw vehiclesError;
+
+    const validVehicleMap = new Map<string, { id: string; vehicle_id: string; make: string; model: string }>();
+    for (const v of (validVehicles || []) as any[]) {
+      if (!v.is_deleted) validVehicleMap.set(v.id, v);
+    }
+
     const assignmentMap = new Map<string, any>();
     for (const a of (assignmentResult.data || []) as any[]) {
-      const vehicle = a.vehicle?.[0] ?? null;
-      if (vehicle?.is_deleted) continue;
-      assignmentMap.set(a.id, a);
+      if (!validVehicleMap.has(a.vehicle_id)) continue;
+      assignmentMap.set(a.id, { ...a, vehicle: [validVehicleMap.get(a.vehicle_id)] });
     }
 
     const maintenanceMap = new Map<string, any>();
     for (const m of (maintenanceResult.data || []) as any[]) {
-      const vehicle = m.vehicle?.[0] ?? null;
-      if (vehicle?.is_deleted) continue;
-      maintenanceMap.set(m.id, m);
+      if (!validVehicleMap.has(m.vehicle_id)) continue;
+      maintenanceMap.set(m.id, { ...m, vehicle: [validVehicleMap.get(m.vehicle_id)] });
     }
 
     const history: ReminderHistoryItem[] = [];
