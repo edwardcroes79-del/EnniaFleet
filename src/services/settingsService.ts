@@ -128,6 +128,7 @@ export const settingsService = {
     }
     try {
       const response = await fetch("/api/reminder-history", {
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${sessionData.session.access_token}`,
