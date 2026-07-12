@@ -104,10 +104,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const history: ReminderHistoryItem[] = [];
 
     for (const row of (emailRows || []) as any[]) {
+      if (row.assignment_id && !assignmentMap.has(row.assignment_id)) continue;
       const assignment = row.assignment_id ? assignmentMap.get(row.assignment_id) : null;
       const vehicle = assignment?.vehicle?.[0] ?? null;
       const employee = assignment?.employee?.[0] ?? null;
-      if (vehicle?.is_deleted) continue;
 
       history.push({
         id: row.id,
@@ -126,9 +126,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
 
     for (const row of (maintenanceRows || []) as any[]) {
+      if (row.maintenance_id && !maintenanceMap.has(row.maintenance_id)) continue;
       const maintenance = row.maintenance_id ? maintenanceMap.get(row.maintenance_id) : null;
       const vehicle = maintenance?.vehicle?.[0] ?? null;
-      if (vehicle?.is_deleted) continue;
 
       let employeeName: string | null = null;
       let employeeEmail: string | null = null;
