@@ -18,8 +18,8 @@ import {
   LogOut,
   Menu,
   Shield,
-  Settings,
-} from "lucide-react";
+  Settings } from
+"lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -30,19 +30,19 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Vehicles", href: "/vehicles", icon: Car },
-  { label: "Employees", href: "/employees", icon: Users, roles: ["admin", "director"] },
-  { label: "Assignments", href: "/assignments", icon: ClipboardList },
-  { label: "Maintenance", href: "/maintenance", icon: Wrench },
-  { label: "Fuel Log", href: "/fuel", icon: Fuel },
-  { label: "Incidents", href: "/incidents", icon: AlertTriangle },
-  { label: "Documents", href: "/documents", icon: FileText },
-  { label: "Reports", href: "/reports", icon: BarChart3, roles: ["admin", "director"] },
-  { label: "Settings", href: "/admin/settings", icon: Settings, roles: ["admin"] },
-];
+{ label: "Dashboard", href: "/", icon: LayoutDashboard },
+{ label: "Vehicles", href: "/vehicles", icon: Car },
+{ label: "Employees", href: "/employees", icon: Users, roles: ["admin", "director"] },
+{ label: "Assignments", href: "/assignments", icon: ClipboardList },
+{ label: "Maintenance", href: "/maintenance", icon: Wrench },
+{ label: "Fuel Log", href: "/fuel", icon: Fuel },
+{ label: "Incidents", href: "/incidents", icon: AlertTriangle },
+{ label: "Documents", href: "/documents", icon: FileText },
+{ label: "Reports", href: "/reports", icon: BarChart3, roles: ["admin", "director"] },
+{ label: "Settings", href: "/admin/settings", icon: Settings, roles: ["admin"] }];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+
+export function AppShell({ children }: {children: React.ReactNode;}) {
   const { profile, signOut, hasRole } = useAuth();
   const { settings } = useSettings();
   const router = useRouter();
@@ -51,23 +51,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     (item) => !item.roles || item.roles.some((r) => hasRole([r]))
   );
 
-  const NavLink = ({ item, mobile = false }: { item: NavItem; mobile?: boolean }) => {
+  const NavLink = ({ item, mobile = false }: {item: NavItem;mobile?: boolean;}) => {
     const active = router.pathname === item.href || router.pathname.startsWith(`${item.href}/`);
     return (
       <Link
         href={item.href}
         className={cn(
           "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-          mobile
-            ? "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-            : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          mobile ?
+          "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" :
+          "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
           active && "bg-sidebar-accent text-sidebar-accent-foreground"
-        )}
-      >
+        )}>
+        
         <item.icon className="h-4 w-4" />
         {item.label}
-      </Link>
-    );
+      </Link>);
+
   };
 
   const companyName = settings?.company_name || "FleetCommand";
@@ -77,19 +77,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen">
       <aside className="hidden w-64 flex-col border-r bg-sidebar lg:flex">
         <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
-          {logoUrl ? (
-            <img src={logoUrl} alt={companyName} className="h-8 w-8 object-contain" />
-          ) : (
-            <Shield className="h-6 w-6 text-sidebar-primary" />
-          )}
+          {logoUrl ?
+          <img src={logoUrl} alt={companyName} className="h-8 w-8 object-contain" /> :
+
+          <Shield className="h-6 w-6 text-sidebar-primary" />
+          }
           <span className="font-display text-lg font-semibold tracking-tight text-sidebar-foreground">
             {companyName}
           </span>
         </div>
         <nav className="flex-1 space-y-1 px-3 py-4">
-          {visibleNav.map((item) => (
-            <NavLink key={item.href} item={item} />
-          ))}
+          {visibleNav.map((item) =>
+          <NavLink key={item.href} item={item} />
+          )}
         </nav>
         <div className="border-t border-sidebar-border p-4">
           <div className="mb-3 flex items-center gap-3">
@@ -111,8 +111,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               variant="ghost"
               size="sm"
               className="text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              onClick={signOut}
-            >
+              onClick={signOut}>
+              
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
             </Button>
@@ -131,19 +131,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </SheetTrigger>
               <SheetContent side="left" className="w-64 bg-sidebar p-0">
                 <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
-                  {logoUrl ? (
-                    <img src={logoUrl} alt={companyName} className="h-8 w-8 object-contain" />
-                  ) : (
-                    <Shield className="h-6 w-6 text-sidebar-primary" />
-                  )}
+                  {logoUrl ?
+                  <img src={logoUrl} alt={companyName} className="h-8 w-8 object-contain" /> :
+
+                  <Shield className="h-6 w-6 text-sidebar-primary" />
+                  }
                   <span className="font-display text-lg font-semibold text-sidebar-foreground">
                     {companyName}
                   </span>
                 </div>
                 <nav className="space-y-1 px-3 py-4">
-                  {visibleNav.map((item) => (
-                    <NavLink key={item.href} item={item} mobile />
-                  ))}
+                  {visibleNav.map((item) =>
+                  <NavLink key={item.href} item={item} mobile />
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
@@ -155,7 +155,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 weekday: "short",
                 year: "numeric",
                 month: "short",
-                day: "numeric",
+                day: "numeric"
               })}
             </span>
           </div>
@@ -165,6 +165,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="container-fleet">{children}</div>
         </main>
       </div>
-    </div>
-  );
+    </div>);
+
 }
