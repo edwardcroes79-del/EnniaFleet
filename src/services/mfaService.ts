@@ -101,4 +101,35 @@ export const mfaService = {
 
     return { data: { valid: false }, error: null };
   },
+
+  async getBackupCodes(): Promise<{ data: { backupCodes: string[] } | null; error: Error | null }> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: null, error: new Error("Not authenticated") };
+
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("mfa_backup_codes")
+      .eq("id", user.id)
+      .single();
+
+    if (error) return { data: null, error };
+    return { data: { backupCodes: profile?.mfa_backup_codes || [] }, error: null };
+  },
+
+  async disable(): Promise<{ data: null; error: Error | null }> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: null, error: new Error("Not authenticated") };
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        mfa_enabled: false,
+        mfa_secret: null,
+        mfa_backup_codes: [],
+      })
+      .eq("id", user.id);
+
+    if (error) return { data: null, error };
+    return { data: null, error: null };
+  },
 };

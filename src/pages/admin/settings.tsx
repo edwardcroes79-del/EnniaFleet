@@ -4,14 +4,17 @@ import { withAuth } from "@/components/withAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { settingsService, type AppSettings } from "@/services/settingsService";
 import { authService } from "@/services/authService";
+import { mfaService } from "@/services/mfaService";
 import { incidentTypeService, type IncidentType, maintenanceTypeService, type MaintenanceType } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, X, Plus, Clock, RefreshCw } from "lucide-react";
+import { Loader2, Upload, X, Plus, Clock, RefreshCw, Shield, ShieldCheck, ShieldOff } from "lucide-react";
+import QRCode from "qrcode";
 
 type ReminderHistoryItem = {
   id: string;
@@ -69,6 +72,19 @@ function AdminSettingsPage() {
   const [returnCountdownSeconds, setReturnCountdownSeconds] = useState(0);
   const [serviceCountdownSeconds, setServiceCountdownSeconds] = useState(0);
   const [cronSchedule, setCronSchedule] = useState<{ returnReminders: { time: string; path: string }; serviceReminders: { time: string; path: string } } | null>(null);
+  const [mfaEnabled, setMfaEnabled] = useState(false);
+  const [mfaLoading, setMfaLoading] = useState(true);
+  const [mfaSetup, setMfaSetup] = useState<{ secret: string; qrCodeUrl: string; qrCodeDataUrl: string } | null>(null);
+  const [mfaToken, setMfaToken] = useState("");
+  const [mfaVerifying, setMfaVerifying] = useState(false);
+  const [mfaBackupCodes, setMfaBackupCodes] = useState<string[]>([]);
+
+  useEffect(() => {
+    mfaService.isEnabled().then((enabled) => {
+      setMfaEnabled(enabled);
+      setMfaLoading(false);
+    });
+  }, []);
 
   const loadTypes = () => {
     incidentTypeService.list().then(({ data, error }) => {
@@ -295,6 +311,58 @@ function AdminSettingsPage() {
     }
   };
 
+  const handleSetupMfa = async () => {
+    const { data, error } = await mfaService.generateSecret();
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (data) {
+      const qrDataUrl = await QRCode.toDataURL(data.qrCodeUrl);
+      setMfaSetup({ secret: data.secret, qrCodeUrl: data.qrCodeUrl, qrCodeDataUrl: qrDataUrl });
+      setMfaToken("");
+    }
+  };
+
+  const handleVerifyAndEnable = async () => {
+    if (!mfaSetup || !mfaToken.trim()) {
+      toast({ title: "Error", description: "Please enter a verification code", variant: "destructive" });
+      return;
+    }
+    setMfaVerifying(true);
+    const { data, error } = await mfaService.verifyAndEnable(mfaSetup.secret, mfaToken);
+    setMfaVerifying(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (data?.success) {
+      setMfaEnabled(true);
+      setMfaSetup(null);
+      setMfaToken("");
+      const { data: profileData } = await mfaService.getBackupCodes();
+      if (profileData) setMfaBackupCodes(profileData.backupCodes);
+      toast({ title: "MFA enabled", description: "Multi-factor authentication is now active" });
+    }
+  };
+
+  const handleDisableMfa = async () => {
+    if (!confirm("Are you sure you want to disable MFA? Your account will be less secure.")) return;
+    const { error } = await mfaService.disable();
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    setMfaEnabled(false);
+    setMfaBackupCodes([]);
+    toast({ title: "MFA disabled", description: "Multi-factor authentication has been turned off" });
+  };
+
+  const handleCancelSetup = () => {
+    setMfaSetup(null);
+    setMfaToken("");
+  };
+
   if (loading) {
     return <AppShell><div className="py-12 text-center">Loading…</div></AppShell>;
   }
@@ -486,6 +554,97 @@ function AdminSettingsPage() {
                 <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" />
               </div>
               <Button type="button" onClick={changePassword} disabled={passwordSaving}>{passwordSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Update password</Button>
+            </CardContent>
+          </Card>
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                {mfaEnabled ? <ShieldCheck className="h-5 w-5 text-emerald-500" /> : <Shield className="h-5 w-5" />}
+                Multi-factor authentication
+              </CardTitle>
+              <CardDescription>
+                {mfaEnabled
+                  ? "Your account is protected with an additional verification step."
+                  : "Add an extra layer of security to your account."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              {mfaLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Checking MFA status…
+                </div>
+              ) : mfaEnabled ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-3">
+                    <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                    <div>
+                      <p className="font-medium text-emerald-900">MFA is enabled</p>
+                      <p className="text-sm text-emerald-700">You'll be asked for a verification code after signing in.</p>
+                    </div>
+                  </div>
+                  {mfaBackupCodes.length > 0 && (
+                    <Alert>
+                      <AlertDescription>
+                        <p className="font-medium mb-2">Your backup codes:</p>
+                        <div className="grid grid-cols-2 gap-1 font-mono text-sm">
+                          {mfaBackupCodes.map((code, i) => (
+                            <div key={i} className="rounded bg-muted px-2 py-1">{code}</div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Save these codes in a safe place. Each can be used once if you lose access to your authenticator app.
+                        </p>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  <Button type="button" variant="destructive" onClick={handleDisableMfa}>
+                    <ShieldOff className="mr-2 h-4 w-4" /> Disable MFA
+                  </Button>
+                </div>
+              ) : mfaSetup ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Scan the QR code with your authenticator app (Google Authenticator, Authy, 1Password, etc.) or enter the secret key manually.
+                  </p>
+                  <div className="flex flex-col items-center gap-4 rounded-md border bg-muted/50 p-6">
+                    <img src={mfaSetup.qrCodeDataUrl} alt="QR code" className="h-48 w-48" />
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground mb-1">Secret key:</p>
+                      <code className="rounded bg-background px-3 py-1 font-mono text-sm">{mfaSetup.secret}</code>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="mfa-token">Verification code</Label>
+                    <Input
+                      id="mfa-token"
+                      type="text"
+                      placeholder="Enter 6-digit code"
+                      value={mfaToken}
+                      onChange={(e) => setMfaToken(e.target.value)}
+                      maxLength={6}
+                      autoFocus
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Enter the code from your authenticator app to verify setup.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="button" onClick={handleVerifyAndEnable} disabled={mfaVerifying}>
+                      {mfaVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Verify and enable
+                    </Button>
+                    <Button type="button" variant="outline" onClick={handleCancelSetup}>Cancel</Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Multi-factor authentication adds an extra layer of security by requiring a code from your authenticator app in addition to your password.
+                  </p>
+                  <Button type="button" onClick={handleSetupMfa}>
+                    <Shield className="mr-2 h-4 w-4" /> Set up MFA
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card className="mt-6">
