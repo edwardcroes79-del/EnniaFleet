@@ -1,22 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
-import { TOTP } from "totp-generator";
+import { authenticator } from "otplib";
 
 export interface MFASetupResponse {
   secret: string;
   qrCodeUrl: string;
-}
-
-function generateSecret(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  let secret = "";
-  for (let i = 0; i < 32; i++) {
-    secret += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return secret;
-}
-
-function generateURI(secret: string, label: string, issuer: string): string {
-  return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
 }
 
 export const mfaService = {
@@ -38,8 +25,8 @@ export const mfaService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
-    const secret = generateSecret();
-    const otpauthUrl = generateURI(secret, user.email || user.id, "FleetCommand");
+    const secret = authenticator.generateSecret();
+    const otpauthUrl = authenticator.keyuri(user.email || user.id, "FleetCommand", secret);
 
     return {
       data: {
@@ -55,8 +42,7 @@ export const mfaService = {
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
     try {
-      const { otp } = await TOTP.generate(secret);
-      const isValid = otp === token;
+      const isValid = authenticator.verify({ token, secret });
       
       if (!isValid) {
         return { data: null, error: new Error("Invalid verification code") };
@@ -98,8 +84,7 @@ export const mfaService = {
     }
 
     try {
-      const { otp } = await TOTP.generate(profile.mfa_secret);
-      const isValid = otp === token;
+      const isValid = authenticator.verify({ token, secret: profile.mfa_secret });
       
       if (isValid) {
         return { data: { valid: true }, error: null };
@@ -121,36 +106,5 @@ export const mfaService = {
     }
 
     return { data: { valid: false }, error: null };
-  },
-
-  async getBackupCodes(): Promise<{ data: { backupCodes: string[] } | null; error: Error | null }> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { data: null, error: new Error("Not authenticated") };
-
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("mfa_backup_codes")
-      .eq("id", user.id)
-      .single();
-
-    if (error) return { data: null, error };
-    return { data: { backupCodes: profile?.mfa_backup_codes || [] }, error: null };
-  },
-
-  async disable(): Promise<{ data: null; error: Error | null }> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { data: null, error: new Error("Not authenticated") };
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        mfa_enabled: false,
-        mfa_secret: null,
-        mfa_backup_codes: [],
-      })
-      .eq("id", user.id);
-
-    if (error) return { data: null, error };
-    return { data: null, error: null };
   },
 };
