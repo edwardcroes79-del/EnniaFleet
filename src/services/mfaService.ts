@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { authenticator } from "otplib";
+import authenticator from "otplib";
 
 export interface MFASetupResponse {
   secret: string;
