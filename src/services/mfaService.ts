@@ -46,7 +46,7 @@ export const mfaService = {
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
     const totp = new TOTP({ secret });
-    const isValid = await totp.verify(token);
+    const isValid = await totp.verify({ token });
     
     if (!isValid) {
       return { data: null, error: new Error("Invalid verification code") };
@@ -85,7 +85,7 @@ export const mfaService = {
     }
 
     const totp = new TOTP({ secret: profile.mfa_secret });
-    const isValid = await totp.verify(token);
+    const isValid = await totp.verify({ token });
     
     if (isValid) {
       return { data: { valid: true }, error: null };
