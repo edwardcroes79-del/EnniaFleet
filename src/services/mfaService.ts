@@ -1,7 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import * as otplib from "otplib";
-
-const { authenticator } = otplib;
+import { generateSecret, verify, TOTP } from "otplib";
 
 export interface MFASetupResponse {
   secret: string;
@@ -13,8 +11,9 @@ export const mfaService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
-    const secret = authenticator.generateSecret();
-    const otpauthUrl = authenticator.keyuri(user.email || user.id, "FleetCommand", secret);
+    const secret = generateSecret();
+    const totp = new TOTP({ secret });
+    const otpauthUrl = totp.keyuri(user.email || user.id, "FleetCommand");
 
     return {
       data: {
@@ -29,7 +28,7 @@ export const mfaService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
-    const isValid = authenticator.verify({ token, secret });
+    const isValid = verify({ token, secret });
     if (!isValid) {
       return { data: null, error: new Error("Invalid verification code") };
     }
@@ -66,7 +65,7 @@ export const mfaService = {
       return { data: null, error: new Error("MFA not configured") };
     }
 
-    const isValid = authenticator.verify({ token, secret: profile.mfa_secret });
+    const isValid = verify({ token, secret: profile.mfa_secret });
     if (isValid) {
       return { data: { valid: true }, error: null };
     }
@@ -84,35 +83,5 @@ export const mfaService = {
     }
 
     return { data: { valid: false }, error: null };
-  },
-
-  async disable(): Promise<{ data: { success: boolean } | null; error: Error | null }> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { data: null, error: new Error("Not authenticated") };
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        mfa_enabled: false,
-        mfa_secret: null,
-        mfa_backup_codes: [],
-      })
-      .eq("id", user.id);
-
-    if (error) return { data: null, error };
-    return { data: { success: true }, error: null };
-  },
-
-  async isEnabled(): Promise<boolean> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
-
-    const { data } = await supabase
-      .from("profiles")
-      .select("mfa_enabled")
-      .eq("id", user.id)
-      .single();
-
-    return data?.mfa_enabled || false;
   },
 };
