@@ -13,7 +13,7 @@ import { authService } from "@/services/authService";
 import { mfaService } from "@/services/mfaService";
 import { incidentTypeService, type IncidentType, maintenanceTypeService, type MaintenanceType } from "@/services/fleetService";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, X, Plus, Clock, RefreshCw, Shield, ShieldCheck, ShieldOff } from "lucide-react";
+import { Loader2, Upload, X, Plus, Clock, RefreshCw, Shield, ShieldCheck, ShieldOff, Database, HardDrive } from "lucide-react";
 import QRCode from "qrcode";
 
 type ReminderHistoryItem = {
@@ -28,6 +28,26 @@ type ReminderHistoryItem = {
   employee_email: string | null;
   vehicle_label: string | null;
 };
+
+type StorageStats = {
+  database: {
+    total_bytes: number;
+    tables: Array<{ table_name: string; row_count: number; table_size: number; index_size: number; total_size: number }>;
+  };
+  storage: {
+    total_bytes: number;
+    buckets: Array<{ name: string; size: number; count: number }>;
+  };
+  total_bytes: number;
+};
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+}
 
 function formatCountdown(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600);
@@ -78,6 +98,8 @@ function AdminSettingsPage() {
   const [mfaToken, setMfaToken] = useState("");
   const [mfaVerifying, setMfaVerifying] = useState(false);
   const [mfaBackupCodes, setMfaBackupCodes] = useState<string[]>([]);
+  const [storageStats, setStorageStats] = useState<StorageStats | null>(null);
+  const [storageLoading, setStorageLoading] = useState(false);
 
   useEffect(() => {
     mfaService.isEnabled().then((enabled) => {
@@ -362,6 +384,24 @@ function AdminSettingsPage() {
     setMfaSetup(null);
     setMfaToken("");
   };
+
+  const loadStorageStats = async () => {
+    setStorageLoading(true);
+    try {
+      const res = await fetch("/api/storage-stats");
+      if (!res.ok) throw new Error("Failed to fetch storage stats");
+      const data = await res.json();
+      setStorageStats(data);
+    } catch (err) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Failed to load storage stats", variant: "destructive" });
+    } finally {
+      setStorageLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadStorageStats();
+  }, []);
 
   if (loading) {
     return <AppShell><div className="py-12 text-center">Loading…</div></AppShell>;
@@ -702,6 +742,107 @@ function AdminSettingsPage() {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Database className="h-5 w-5" /> Database storage
+              </CardTitle>
+              <CardDescription>
+                Monitor your Supabase database and file storage usage.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">Current storage usage and breakdown by table.</p>
+                <Button type="button" variant="outline" size="sm" onClick={loadStorageStats} disabled={storageLoading}>
+                  {storageLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+                </Button>
+              </div>
+              {storageStats ? (
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-md border p-3">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Database className="h-4 w-4" /> Database
+                      </div>
+                      <p className="text-2xl font-bold font-mono mt-1">{formatBytes(storageStats.database.total_bytes)}</p>
+                    </div>
+                    <div className="rounded-md border p-3">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <HardDrive className="h-4 w-4" /> File storage
+                      </div>
+                      <p className="text-2xl font-bold font-mono mt-1">{formatBytes(storageStats.storage.total_bytes)}</p>
+                    </div>
+                    <div className="rounded-md border p-3">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Database className="h-4 w-4" /> Total
+                      </div>
+                      <p className="text-2xl font-bold font-mono mt-1">{formatBytes(storageStats.total_bytes)}</p>
+                    </div>
+                  </div>
+                  {storageStats.database.tables.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium mb-2">Tables by size</p>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Table</TableHead>
+                            <TableHead className="text-right">Rows</TableHead>
+                            <TableHead className="text-right">Data</TableHead>
+                            <TableHead className="text-right">Indexes</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {storageStats.database.tables.map((t) => (
+                            <TableRow key={t.table_name}>
+                              <TableCell className="font-mono text-sm">{t.table_name}</TableCell>
+                              <TableCell className="text-right font-mono">{t.row_count.toLocaleString()}</TableCell>
+                              <TableCell className="text-right font-mono">{formatBytes(t.table_size)}</TableCell>
+                              <TableCell className="text-right font-mono">{formatBytes(t.index_size)}</TableCell>
+                              <TableCell className="text-right font-mono font-medium">{formatBytes(t.total_size)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                  {storageStats.storage.buckets.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium mb-2">Storage buckets</p>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Bucket</TableHead>
+                            <TableHead className="text-right">Files</TableHead>
+                            <TableHead className="text-right">Size</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {storageStats.storage.buckets.map((b) => (
+                            <TableRow key={b.name}>
+                              <TableCell className="font-mono text-sm">{b.name}</TableCell>
+                              <TableCell className="text-right font-mono">{b.count}</TableCell>
+                              <TableCell className="text-right font-mono">{formatBytes(b.size)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                  <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm">
+                    <p className="font-medium text-amber-900">Supabase free tier limits</p>
+                    <p className="text-amber-700">Database: 500 MB • File storage: 1 GB • Bandwidth: 2 GB/month</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              )}
             </CardContent>
           </Card>
           <div className="mt-6 flex gap-3">
