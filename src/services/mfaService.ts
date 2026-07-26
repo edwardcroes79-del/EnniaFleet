@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { authenticator } from "otplib";
+import { generateSecret, verify, generateURI } from "otplib";
 
 export interface MFASetupResponse {
   secret: string;
@@ -25,8 +25,12 @@ export const mfaService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
-    const secret = authenticator.generateSecret();
-    const otpauthUrl = authenticator.keyuri(user.email || user.id, "FleetCommand", secret);
+    const secret = generateSecret();
+    const otpauthUrl = generateURI({
+      secret,
+      label: user.email || user.id,
+      issuer: "FleetCommand",
+    });
 
     return {
       data: {
@@ -41,7 +45,7 @@ export const mfaService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
-    const isValid = authenticator.verify({ token, secret });
+    const isValid = verify({ token, secret });
     if (!isValid) {
       return { data: null, error: new Error("Invalid verification code") };
     }
@@ -78,7 +82,7 @@ export const mfaService = {
       return { data: null, error: new Error("MFA not configured") };
     }
 
-    const isValid = authenticator.verify({ token, secret: profile.mfa_secret });
+    const isValid = verify({ token, secret: profile.mfa_secret });
     if (isValid) {
       return { data: { valid: true }, error: null };
     }
