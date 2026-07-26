@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,6 +11,8 @@ export function withAuth(
   return function AuthenticatedPage(props: Record<string, unknown>) {
     const { isAuthenticated, isLoading, profile } = useAuth();
     const router = useRouter();
+    const [mfaChecked, setMfaChecked] = useState(false);
+    const [mfaVerified, setMfaVerified] = useState(false);
 
     useEffect(() => {
       if (!isLoading && !isAuthenticated) {
@@ -21,12 +23,19 @@ export function withAuth(
       if (!isLoading && isAuthenticated && profile) {
         mfaService.isEnabled().then((enabled) => {
           if (enabled) {
-            const mfaVerified = sessionStorage.getItem("mfa_verified");
-            if (!mfaVerified) {
+            const verified = sessionStorage.getItem("mfa_verified");
+            if (!verified) {
               router.replace("/login");
+            } else {
+              setMfaVerified(true);
             }
+          } else {
+            setMfaVerified(true);
           }
+          setMfaChecked(true);
         });
+      } else if (!isLoading) {
+        setMfaChecked(true);
       }
 
       if (!isLoading && isAuthenticated && allowedRoles && profile && !allowedRoles.includes(profile.role)) {
@@ -34,7 +43,7 @@ export function withAuth(
       }
     }, [isLoading, isAuthenticated, profile, router]);
 
-    if (isLoading) {
+    if (isLoading || !mfaChecked) {
       return (
         <div className="flex min-h-screen items-center justify-center bg-background">
           <div className="w-full max-w-md space-y-4 p-6">
@@ -48,6 +57,7 @@ export function withAuth(
 
     if (!isAuthenticated) return null;
     if (allowedRoles && profile && !allowedRoles.includes(profile.role)) return null;
+    if (!mfaVerified) return null;
 
     return <Component {...props} />;
   };
