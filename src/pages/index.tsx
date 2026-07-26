@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { vehicleService, maintenanceService, fuelService, assignmentService, type Vehicle, type MaintenanceWithVehicle, type FuelLogWithRelations, type AssignmentWithRelations } from "@/services/fleetService";
 import { settingsService } from "@/services/settingsService";
 import { useToast } from "@/hooks/use-toast";
-import { Car, Users, Wrench, Fuel, AlertTriangle, Send, Loader2 } from "lucide-react";
+import { Car, Users, Wrench, Fuel, AlertTriangle, Send, Loader2, Clock } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
 
@@ -50,6 +50,9 @@ function DashboardPage() {
   const [assignments, setAssignments] = useState<AssignmentWithRelations[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [sendingReminder, setSendingReminder] = useState<string | null>(null);
+  const [returnCountdownSeconds, setReturnCountdownSeconds] = useState<number | null>(null);
+  const [serviceCountdownSeconds, setServiceCountdownSeconds] = useState<number | null>(null);
+  const [cronSchedule, setCronSchedule] = useState<{ returnReminders: { time: string }; serviceReminders: { time: string } } | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -65,7 +68,32 @@ function DashboardPage() {
       setLoaded(true);
       if (v.error) toast({ title: "Error", description: v.error.message, variant: "destructive" });
     });
+    settingsService.getReminderHistory().then(({ data }) => {
+      if (data) {
+        setCronSchedule(data.schedule);
+        const now = Date.now();
+        setReturnCountdownSeconds(Math.max(0, Math.floor((new Date(data.nextReturnRun).getTime() - now) / 1000)));
+        setServiceCountdownSeconds(Math.max(0, Math.floor((new Date(data.nextServiceRun).getTime() - now) / 1000)));
+      }
+    });
   }, [toast]);
+
+  useEffect(() => {
+    if (returnCountdownSeconds === null && serviceCountdownSeconds === null) return;
+    const interval = setInterval(() => {
+      setReturnCountdownSeconds((s) => (s !== null ? Math.max(0, s - 1) : s));
+      setServiceCountdownSeconds((s) => (s !== null ? Math.max(0, s - 1) : s));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [returnCountdownSeconds, serviceCountdownSeconds]);
+
+  const formatCountdown = (seconds: number | null) => {
+    if (seconds === null) return "—";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
 
   const activeVehicles = vehicles.filter((v) => !v.is_deleted);
 
@@ -116,6 +144,29 @@ function DashboardPage() {
           <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">Available</CardTitle><Car className="h-4 w-4 text-emerald-500" /></CardHeader><CardContent><div className="text-3xl font-bold font-display text-emerald-500">{counts.available}</div></CardContent></Card>
           <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">Assigned</CardTitle><Users className="h-4 w-4 text-primary" /></CardHeader><CardContent><div className="text-3xl font-bold font-display text-primary">{counts.assigned}</div></CardContent></Card>
           <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">In maintenance</CardTitle><Wrench className="h-4 w-4 text-amber-500" /></CardHeader><CardContent><div className="text-3xl font-bold font-display text-amber-500">{counts.maintenance}</div></CardContent></Card>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Return reminders</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold font-mono">{formatCountdown(returnCountdownSeconds)}</div>
+              <p className="text-xs text-muted-foreground mt-1">Next run: {cronSchedule?.returnReminders.time ?? "09:00 UTC"}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Service reminders</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold font-mono">{formatCountdown(serviceCountdownSeconds)}</div>
+              <p className="text-xs text-muted-foreground mt-1">Next run: {cronSchedule?.serviceReminders.time ?? "09:00 UTC"}</p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
