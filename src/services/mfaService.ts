@@ -55,7 +55,7 @@ export const mfaService = {
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
     try {
-      const { otp } = TOTP.generate(secret);
+      const { otp } = await TOTP.generate(secret);
       const isValid = otp === token;
       
       if (!isValid) {
@@ -98,7 +98,7 @@ export const mfaService = {
     }
 
     try {
-      const { otp } = TOTP.generate(profile.mfa_secret);
+      const { otp } = await TOTP.generate(profile.mfa_secret);
       const isValid = otp === token;
       
       if (isValid) {
