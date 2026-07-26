@@ -1,6 +1,6 @@
 ---
 title: Admin MFA management in settings
-status: todo
+status: done
 priority: medium
 type: feature
 tags: [auth, mfa, admin]

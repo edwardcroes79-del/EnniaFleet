@@ -1,6 +1,6 @@
 ---
 title: Login page MFA verification flow
-status: todo
+status: done
 priority: high
 type: feature
 tags: [auth, mfa, login]
