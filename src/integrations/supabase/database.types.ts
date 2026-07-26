@@ -557,6 +557,9 @@ export type Database = {
           is_active: boolean
           license_expiry: string | null
           license_number: string | null
+          mfa_backup_codes: string[] | null
+          mfa_enabled: boolean | null
+          mfa_secret: string | null
           phone: string | null
           position: string | null
           role: string
@@ -575,6 +578,9 @@ export type Database = {
           is_active?: boolean
           license_expiry?: string | null
           license_number?: string | null
+          mfa_backup_codes?: string[] | null
+          mfa_enabled?: boolean | null
+          mfa_secret?: string | null
           phone?: string | null
           position?: string | null
           role?: string
@@ -593,6 +599,9 @@ export type Database = {
           is_active?: boolean
           license_expiry?: string | null
           license_number?: string | null
+          mfa_backup_codes?: string[] | null
+          mfa_enabled?: boolean | null
+          mfa_secret?: string | null
           phone?: string | null
           position?: string | null
           role?: string

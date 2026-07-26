@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
-  const { signIn, isAuthenticated } = useAuth();
+  const { signIn, signOut, isAuthenticated } = useAuth();
   const { settings } = useSettings();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -53,6 +53,12 @@ export default function LoginPage() {
       setMessage("If this is a registered admin email, a password reset link has been sent.");
       setShowForgot(false);
     }
+  };
+
+  const handleSignOut = async () => {
+    sessionStorage.removeItem("mfa_verified");
+    await signOut();
+    router.push("/login");
   };
 
   const companyName = settings?.company_name || "FleetCommand";
