@@ -1,11 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
-import { authenticator } from "otplib";
-import { crypto } from "@otplib/plugin-crypto";
+import { TOTP, generateSecret, generateURI, NobleCryptoPlugin } from "otplib";
 
-// Register crypto plugin for Node.js environment
-authenticator.options = {
+// Register crypto plugin for browser/Node.js environment
+const totp = new TOTP();
+totp.options = {
+  crypto: NobleCryptoPlugin,
   window: 1,
-  crypto: crypto,
 };
 
 export interface MFASetupResponse {
@@ -32,8 +32,12 @@ export const mfaService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
-    const secret = authenticator.generateSecret();
-    const otpauthUrl = authenticator.keyuri(user.email || user.id, "FleetCommand", secret);
+    const secret = generateSecret();
+    const otpauthUrl = generateURI({
+      secret,
+      label: user.email || user.id,
+      issuer: "FleetCommand",
+    });
 
     return {
       data: {
@@ -49,7 +53,8 @@ export const mfaService = {
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
     try {
-      const isValid = authenticator.verify({ token, secret });
+      const totpInstance = new TOTP({ secret, crypto: NobleCryptoPlugin, window: 1 });
+      const isValid = totpInstance.verify(token);
       
       if (!isValid) {
         return { data: null, error: new Error("Invalid verification code") };
@@ -92,7 +97,8 @@ export const mfaService = {
     }
 
     try {
-      const isValid = authenticator.verify({ token, secret: profile.mfa_secret });
+      const totpInstance = new TOTP({ secret: profile.mfa_secret, crypto: NobleCryptoPlugin, window: 1 });
+      const isValid = totpInstance.verify(token);
       
       if (isValid) {
         return { data: { valid: true }, error: null };
