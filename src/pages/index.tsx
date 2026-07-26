@@ -120,6 +120,28 @@ function DashboardPage() {
       !m.vehicle.is_deleted
   );
 
+  const upcomingReturns = assignments
+    .filter((a) => a.expected_return_date && !a.actual_return_date && a.vehicle && !a.vehicle.is_deleted && isWithinOrOverdue(a.expected_return_date, 30))
+    .sort((a, b) => new Date(a.expected_return_date!).getTime() - new Date(b.expected_return_date!).getTime())
+    .slice(0, 5);
+
+  const upcomingServiceVehicles = dueServiceRecords
+    .sort((a, b) => new Date(a.next_service_due!).getTime() - new Date(b.next_service_due!).getTime())
+    .slice(0, 5);
+
+  const daysUntil = (date: string | null) => {
+    if (!date) return null;
+    const diff = new Date(date).getTime() - Date.now();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  };
+
+  const formatDays = (days: number | null) => {
+    if (days === null) return "—";
+    if (days < 0) return `${Math.abs(days)}d overdue`;
+    if (days === 0) return "Today";
+    return `${days}d`;
+  };
+
   const handleSendServiceReminder = async (id: string) => {
     setSendingReminder(id);
     const { data, error } = await settingsService.sendManualServiceReminder(id);
@@ -149,22 +171,70 @@ function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Return reminders</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Clock className="h-4 w-4 text-amber-500" /> Return reminders
+              </CardTitle>
+              <Badge variant="outline">{upcomingReturns.length}</Badge>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-mono">{formatCountdown(returnCountdownSeconds)}</div>
-              <p className="text-xs text-muted-foreground mt-1">Next run: {cronSchedule?.returnReminders.time ?? "09:00 UTC"}</p>
+            <CardContent className="space-y-2">
+              {!loaded ? <p className="text-muted-foreground">Loading…</p> :
+              upcomingReturns.length === 0 ? <p className="text-sm text-muted-foreground">No vehicles due for return soon.</p> :
+              upcomingReturns.map((a) => {
+                const days = daysUntil(a.expected_return_date);
+                const overdue = days !== null && days < 0;
+                return (
+                  <div key={a.id} className="flex items-center justify-between gap-2 rounded border p-2 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-mono">{a.vehicle?.vehicle_id || a.vehicle_id}</p>
+                      <p className="truncate text-xs text-muted-foreground">{a.employee?.full_name || a.employee_id}</p>
+                    </div>
+                    <Badge variant={overdue ? "destructive" : days !== null && days <= 3 ? "warning" : "outline"}>
+                      {formatDays(days)}
+                    </Badge>
+                  </div>
+                );
+              })}
+              <p className="text-xs text-muted-foreground pt-2 border-t">Cron: {cronSchedule?.returnReminders.time ?? "09:00 UTC"}</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Service reminders</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Wrench className="h-4 w-4 text-blue-500" /> Service reminders
+              </CardTitle>
+              <Badge variant="outline">{upcomingServiceVehicles.length}</Badge>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-mono">{formatCountdown(serviceCountdownSeconds)}</div>
-              <p className="text-xs text-muted-foreground mt-1">Next run: {cronSchedule?.serviceReminders.time ?? "09:00 UTC"}</p>
+            <CardContent className="space-y-2">
+              {!loaded ? <p className="text-muted-foreground">Loading…</p> :
+              upcomingServiceVehicles.length === 0 ? <p className="text-sm text-muted-foreground">No vehicles due for service soon.</p> :
+              upcomingServiceVehicles.map((m) => {
+                const days = daysUntil(m.next_service_due);
+                const overdue = days !== null && days < 0;
+                return (
+                  <div key={m.id} className="flex items-center justify-between gap-2 rounded border p-2 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-mono">{m.vehicle?.vehicle_id || m.vehicle_id}</p>
+                      <p className="truncate text-xs text-muted-foreground">{m.service_type}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={overdue ? "destructive" : days !== null && days <= 3 ? "warning" : "outline"}>
+                        {formatDays(days)}
+                      </Badge>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="shrink-0 h-7 w-7"
+                        onClick={() => handleSendServiceReminder(m.id)}
+                        disabled={sendingReminder === m.id}
+                        title="Send service reminder"
+                      >
+                        {sendingReminder === m.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+              <p className="text-xs text-muted-foreground pt-2 border-t">Cron: {cronSchedule?.serviceReminders.time ?? "09:00 UTC"}</p>
             </CardContent>
           </Card>
         </div>
@@ -207,32 +277,8 @@ function DashboardPage() {
             <CardContent className="space-y-3">
               {!loaded ? <p className="text-muted-foreground">Loading…</p> :
               <>
-                <p className="text-sm text-muted-foreground">{dueServiceRecords.length} service reminder(s) due</p>
                 <p className="text-sm text-muted-foreground">{upcomingService.length} vehicle(s) due for service</p>
                 <p className="text-sm text-muted-foreground">{expiringDocs.length} registration/insurance expiring soon</p>
-                {dueServiceRecords.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Due service records</p>
-                    {dueServiceRecords.map((m) => (
-                      <div key={m.id} className="flex items-center justify-between gap-2 rounded border p-2 text-sm">
-                        <div className="min-w-0">
-                          <p className="truncate font-mono">{m.vehicle?.vehicle_id || m.vehicle_id}</p>
-                          <p className="truncate text-xs text-muted-foreground">{m.service_type} · {m.next_service_due}</p>
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="shrink-0"
-                          onClick={() => handleSendServiceReminder(m.id)}
-                          disabled={sendingReminder === m.id}
-                          title="Send service reminder"
-                        >
-                          {sendingReminder === m.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
                 {upcomingService.map((v) => (
                   <div key={v.id} className="flex items-center justify-between rounded border p-2 text-sm">
                     <span>{v.vehicle_id}</span>
