@@ -13,7 +13,7 @@ import { Shield, Loader2, KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
-  const { signIn, isAuthenticated, user } = useAuth();
+  const { signIn, signOut, isAuthenticated, user } = useAuth();
   const { settings } = useSettings();
   const { toast } = useToast();
   const router = useRouter();
@@ -102,7 +102,7 @@ export default function LoginPage() {
     sessionStorage.removeItem("mfa_verified");
     setMfaRequired(false);
     setMfaToken("");
-    await signIn("", "");
+    await signOut();
     router.push("/login");
   };
 
