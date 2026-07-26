@@ -1,9 +1,22 @@
 import { supabase } from "@/integrations/supabase/client";
-import { generateSecret, generateURI, TOTP } from "otplib";
+import { TOTP } from "totp-generator";
 
 export interface MFASetupResponse {
   secret: string;
   qrCodeUrl: string;
+}
+
+function generateSecret(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let secret = "";
+  for (let i = 0; i < 32; i++) {
+    secret += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return secret;
+}
+
+function generateURI(secret: string, label: string, issuer: string): string {
+  return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
 }
 
 export const mfaService = {
@@ -26,11 +39,7 @@ export const mfaService = {
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
     const secret = generateSecret();
-    const otpauthUrl = generateURI({
-      secret,
-      label: user.email || user.id,
-      issuer: "FleetCommand",
-    });
+    const otpauthUrl = generateURI(secret, user.email || user.id, "FleetCommand");
 
     return {
       data: {
@@ -45,12 +54,15 @@ export const mfaService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
-    const totp = new TOTP({ secret });
-    // @ts-ignore - TypeScript types are incorrect, verify is actually async
-    const isValid = await totp.verify(token, {});
-    
-    if (!isValid) {
-      return { data: null, error: new Error("Invalid verification code") };
+    try {
+      const { otp } = TOTP.generate(secret);
+      const isValid = otp === token;
+      
+      if (!isValid) {
+        return { data: null, error: new Error("Invalid verification code") };
+      }
+    } catch (err) {
+      return { data: null, error: new Error("Failed to verify code") };
     }
 
     const backupCodes = Array.from({ length: 10 }, () =>
@@ -85,12 +97,15 @@ export const mfaService = {
       return { data: null, error: new Error("MFA not configured") };
     }
 
-    const totp = new TOTP({ secret: profile.mfa_secret });
-    // @ts-ignore - TypeScript types are incorrect, verify is actually async
-    const isValid = await totp.verify(token, {});
-    
-    if (isValid) {
-      return { data: { valid: true }, error: null };
+    try {
+      const { otp } = TOTP.generate(profile.mfa_secret);
+      const isValid = otp === token;
+      
+      if (isValid) {
+        return { data: { valid: true }, error: null };
+      }
+    } catch (err) {
+      return { data: null, error: new Error("Failed to verify code") };
     }
 
     const backupCodes = profile.mfa_backup_codes || [];
