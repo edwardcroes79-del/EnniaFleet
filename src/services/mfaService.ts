@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { generateSecret, verify, TOTP } from "otplib";
+import { authenticator } from "otplib";
 
 export interface MFASetupResponse {
   secret: string;
@@ -7,13 +7,26 @@ export interface MFASetupResponse {
 }
 
 export const mfaService = {
+  async isEnabled(): Promise<boolean> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("mfa_enabled")
+      .eq("id", user.id)
+      .single();
+
+    if (error || !data) return false;
+    return data.mfa_enabled || false;
+  },
+
   async generateSecret(): Promise<{ data: MFASetupResponse | null; error: Error | null }> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
-    const secret = generateSecret();
-    const totp = new TOTP({ secret });
-    const otpauthUrl = totp.keyuri(user.email || user.id, "FleetCommand");
+    const secret = authenticator.generateSecret();
+    const otpauthUrl = authenticator.keyuri(user.email || user.id, "FleetCommand", secret);
 
     return {
       data: {
@@ -28,7 +41,7 @@ export const mfaService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { data: null, error: new Error("Not authenticated") };
 
-    const isValid = verify({ token, secret });
+    const isValid = authenticator.verify({ token, secret });
     if (!isValid) {
       return { data: null, error: new Error("Invalid verification code") };
     }
@@ -65,7 +78,7 @@ export const mfaService = {
       return { data: null, error: new Error("MFA not configured") };
     }
 
-    const isValid = verify({ token, secret: profile.mfa_secret });
+    const isValid = authenticator.verify({ token, secret: profile.mfa_secret });
     if (isValid) {
       return { data: { valid: true }, error: null };
     }
