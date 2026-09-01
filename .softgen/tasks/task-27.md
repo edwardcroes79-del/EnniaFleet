@@ -24,12 +24,12 @@ ules:
 
 ## Checklist
 - [x] Excel-formules geverifieerd (B11, B13, E5, E6, B15, E7, B17)
-- [ ] Calculator-pagina aangemaakt met inputs Merk/Type/Bouwjaar/Factuurwaarde + datumvelden
-- [ ] Live berekening met volledige precisie, alleen weergave afronden op 2 decimalen
-- [ ] Validatie inclusief "Vervangingsdatum moet na de ingangsdatum liggen."
-- [ ] Reset-knop die alle velden leegt
-- [ ] Menu-item "Afschrijvingsberekening" in AppShell
-- [ ] Responsief ontwerp, geen database of API
+- [x] Calculator-pagina aangemaakt met inputs Merk/Type/Bouwjaar/Factuurwaarde + datumvelden
+- [x] Live berekening met volledige precisie, alleen weergave afronden op 2 decimalen
+- [x] Validatie inclusief "Vervangingsdatum moet na de ingangsdatum liggen."
+- [x] Reset-knop die alle velden leegt
+- [x] Menu-item "Afschrijvingsberekening" in AppShell
+- [x] Responsief ontwerp, geen database of API
 
 ## Acceptance
 - Calculator werkt volledig client-side zonder Supabase-calls
