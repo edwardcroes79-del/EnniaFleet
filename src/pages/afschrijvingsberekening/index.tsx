@@ -245,39 +245,32 @@ function DepreciationPage() {
                   <ResultRow
                     label="Totale maanden"
                     value={showResults ? `${calculation.totalMonths}` : "—"}
-                    className="result-row"
                   />
                   <ResultRow
                     label="Restwaarde"
                     value={formatCurrency(calculation.residualValue)}
-                    className="result-row"
                   />
                   <ResultRow
                     label="Afschrijvingskosten 60 mnd"
                     value={formatCurrency(calculation.depreciation60)}
-                    className="result-row"
                   />
                   <ResultRow
                     label="Afschrijvingskosten p/m"
                     value={formatCurrency(calculation.depreciationPerMonth)}
-                    className="result-row"
                   />
                   <ResultRow
                     label="Additionele afschrijvingkosten"
                     value={formatCurrency(calculation.additionalDepreciation)}
-                    className="result-row"
                   />
                   <ResultRow
                     label="Totale afschrijving"
                     value={formatCurrency(calculation.totalDepreciation)}
                     highlight
-                    className="result-row result-row-highlight"
                   />
                   <ResultRow
                     label="Restwaarde/Boekwaarde"
                     value={formatCurrency(calculation.bookValue)}
                     highlight
-                    className="result-row result-row-highlight"
                   />
                 </div>
               </CardContent>
