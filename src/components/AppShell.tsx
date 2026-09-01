@@ -76,8 +76,8 @@ export function AppShell({ children }: {children: React.ReactNode;}) {
   const logoUrl = settings?.logo_url;
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="hidden w-64 flex-col border-r bg-sidebar lg:flex">
+    <div className="flex min-h-screen app-shell-root">
+      <aside className="hidden w-64 flex-col border-r bg-sidebar lg:flex app-shell-sidebar">
         <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
           {logoUrl ?
           <img src={logoUrl} alt={companyName} className="h-8 w-8 object-contain" /> :
@@ -122,16 +122,16 @@ export function AppShell({ children }: {children: React.ReactNode;}) {
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b bg-card px-4 lg:px-8">
+      <div className="flex flex-1 flex-col app-shell-content">
+        <header className="flex h-16 items-center justify-between border-b bg-card px-4 lg:px-8 app-shell-header">
           <div className="flex items-center gap-3 lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="app-shell-menu-button">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-64 bg-sidebar p-0">
+              <SheetContent side="left" className="w-64 bg-sidebar p-0 app-shell-sheet">
                 <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
                   {logoUrl ?
                   <img src={logoUrl} alt={companyName} className="h-8 w-8 object-contain" /> :

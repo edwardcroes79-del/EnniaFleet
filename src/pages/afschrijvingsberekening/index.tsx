@@ -338,17 +338,28 @@ function DepreciationPage() {
           }
 
           /* Hide application chrome */
+          .app-shell-sidebar,
+          .app-shell-header,
+          .app-shell-menu-button,
+          .app-shell-sheet,
           aside,
           header,
           nav,
           .screen-only,
           .lg\\:flex,
           .lg\\:hidden,
-          button[data-state],
+          button,
+          [role="button"],
+          [data-state="open"],
+          [data-radix-popper-content-wrapper],
           .ToastViewport,
           [role="dialog"],
           .sheet,
-          .sheet-content {
+          .sheet-content,
+          .radix-dialog,
+          .radix-portal,
+          .fixed,
+          .sticky {
             display: none !important;
           }
 
