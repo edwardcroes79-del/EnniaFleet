@@ -114,7 +114,7 @@ function DepreciationPage() {
     <AppShell>
       <div className="mx-auto max-w-5xl">
         <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold tracking-tight">Afschrijvingsberekening</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Depreciation calculation</h1>
           <p className="text-sm text-muted-foreground">
             Bereken de afschrijving van een bedrijfsauto op basis van de ingevoerde gegevens.
           </p>

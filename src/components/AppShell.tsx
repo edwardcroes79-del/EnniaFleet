@@ -40,7 +40,7 @@ const navItems: NavItem[] = [
 { label: "Incidents", href: "/incidents", icon: AlertTriangle },
 { label: "Documents", href: "/documents", icon: FileText },
 { label: "Reports", href: "/reports", icon: BarChart3, roles: ["admin", "director"] },
-{ label: "Afschrijvingsberekening", href: "/afschrijvingsberekening", icon: Calculator },
+{ label: "Depreciation calculation", href: "/afschrijvingsberekening", icon: Calculator },
 { label: "Settings", href: "/admin/settings", icon: Settings, roles: ["admin"] }];
 
 
