@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,18 +119,34 @@ function DepreciationPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-5xl print-wrapper">
-        <div className="print-only print-header">
-          <div className="print-logo">ENNIA</div>
-          <div className="print-subtitle">Fleet Management · Aruba</div>
+        {/* Print-only document header */}
+        <div className="print-only print-document-header">
+          <div className="print-logo-container">
+            <Image
+              src="/Ennia_logo.png"
+              alt="ENNIA"
+              width={120}
+              height={50}
+              className="print-logo-image"
+              priority
+            />
+          </div>
+          <div className="print-document-title">Depreciation calculation</div>
+          <div className="print-document-date">
+            {new Date().toLocaleDateString("nl-NL", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
+          </div>
         </div>
 
-        <div className="print-title-section">
-          <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight">Depreciation calculation</h1>
-            <p className="text-sm text-muted-foreground print-muted">
-              Bereken de afschrijving van een bedrijfsauto op basis van de ingevoerde gegevens.
-            </p>
-          </div>
+        {/* Screen-only title */}
+        <div className="screen-only mb-6">
+          <h1 className="font-display text-2xl font-bold tracking-tight">Depreciation calculation</h1>
+          <p className="text-sm text-muted-foreground">
+            Bereken de afschrijving van een bedrijfsauto op basis van de ingevoerde gegevens.
+          </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -279,65 +296,34 @@ function DepreciationPage() {
         </div>
       </div>
 
-      <style jsx>{`
-        .print-header {
-          display: none;
-        }
-        @media screen {
-          .print-only {
-            display: none;
-          }
-          .screen-only {
-            display: inline-flex;
-          }
-        }
-        @media print {
-          .print-header {
-            display: block;
-            text-align: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 2px solid #1e293b;
-          }
-          .print-logo {
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            color: #1e293b;
-          }
-          .print-subtitle {
-            font-size: 12px;
-            color: #475569;
-            margin-top: 4px;
-          }
-          .print-title-section {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 20px;
-          }
-          .print-muted {
-            color: #475569 !important;
-          }
-        }
-      `}</style>
-
       <style jsx global>{`
         @media print {
           @page {
             size: A4 portrait;
-            margin: 18mm;
+            margin: 15mm;
+          }
+
+          *,
+          *::before,
+          *::after {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
 
           html,
           body {
             background: white !important;
-            color: black !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            color: #0f172a !important;
+            font-size: 11pt !important;
           }
 
-          /* Hide application chrome */
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Hide absolutely everything from AppShell and UI chrome */
+          .app-shell-root > *:not(.app-shell-content),
           .app-shell-sidebar,
           .app-shell-header,
           .app-shell-menu-button,
@@ -346,25 +332,26 @@ function DepreciationPage() {
           header,
           nav,
           .screen-only,
-          .lg\\:flex,
-          .lg\\:hidden,
-          button,
-          [role="button"],
-          [data-state="open"],
           [data-radix-popper-content-wrapper],
+          [data-state="open"],
           .ToastViewport,
           [role="dialog"],
           .sheet,
           .sheet-content,
           .radix-dialog,
-          .radix-portal,
-          .fixed,
-          .sticky {
+          .radix-portal {
             display: none !important;
           }
 
-          /* Make page content full width */
-          .container-fleet,
+          .app-shell-content {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+          }
+
           main {
             width: 100% !important;
             max-width: 100% !important;
@@ -373,63 +360,196 @@ function DepreciationPage() {
             background: white !important;
           }
 
-          /* Card styling for print */
+          .container-fleet {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+
+          .print-wrapper {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Show print-only document header */
+          .print-only {
+            display: block !important;
+          }
+
+          .print-document-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            margin-bottom: 24pt !important;
+            padding-bottom: 12pt !important;
+            border-bottom: 1.5pt solid #1e293b !important;
+          }
+
+          .print-logo-container {
+            display: flex !important;
+            align-items: center !important;
+          }
+
+          .print-logo-image {
+            width: auto !important;
+            height: 36pt !important;
+            max-width: 140pt !important;
+            object-fit: contain !important;
+          }
+
+          .print-document-title {
+            font-size: 16pt !important;
+            font-weight: 700 !important;
+            color: #1e293b !important;
+            text-align: right !important;
+          }
+
+          .print-document-date {
+            font-size: 9pt !important;
+            color: #475569 !important;
+            text-align: right !important;
+            margin-top: 4pt !important;
+          }
+
+          /* Layout: single column on print */
+          .print-wrapper > .grid {
+            display: block !important;
+            grid-template-columns: none !important;
+          }
+
+          .print-wrapper > .grid > div {
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+
+          /* Cards */
           [data-slot="card"] {
             box-shadow: none !important;
-            border: 1px solid #cbd5e1 !important;
-            break-inside: avoid;
-            margin-bottom: 16px;
+            border: 1pt solid #cbd5e1 !important;
+            border-radius: 6pt !important;
+            break-inside: avoid !important;
+            margin-bottom: 14pt !important;
+            background: white !important;
           }
 
           [data-slot="card-header"] {
-            padding-bottom: 12px !important;
-            border-bottom: 1px solid #e2e8f0 !important;
+            padding: 10pt 12pt !important;
+            border-bottom: 0.75pt solid #e2e8f0 !important;
+            background: #f8fafc !important;
           }
 
           [data-slot="card-title"] {
-            font-size: 14px !important;
+            font-size: 12pt !important;
             font-weight: 700 !important;
+            color: #1e293b !important;
           }
 
           [data-slot="card-description"] {
             display: none !important;
           }
 
+          [data-slot="card-content"] {
+            padding: 12pt !important;
+          }
+
+          /* Inputs: show as plain text lines */
+          input,
+          select,
+          textarea {
+            border: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+            font-size: 11pt !important;
+            color: #0f172a !important;
+            -webkit-appearance: none !important;
+            appearance: none !important;
+          }
+
+          /* Labels */
+          label {
+            font-size: 9pt !important;
+            font-weight: 600 !important;
+            color: #475569 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.02em !important;
+            margin-bottom: 2pt !important;
+          }
+
           /* Result rows */
           .result-row {
-            break-inside: avoid;
-            border: 1px solid #e2e8f0 !important;
+            break-inside: avoid !important;
+            border: 0.75pt solid #e2e8f0 !important;
             background: white !important;
-            padding: 10px 12px !important;
-            margin-bottom: 6px !important;
-            border-radius: 4px !important;
+            padding: 8pt 10pt !important;
+            margin-bottom: 5pt !important;
+            border-radius: 4pt !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
           }
 
           .result-row-highlight {
             background: #f1f5f9 !important;
-            border: 1px solid #94a3b8 !important;
+            border: 0.75pt solid #94a3b8 !important;
           }
 
-          /* Typography */
+          .result-row span:first-child {
+            font-size: 10pt !important;
+            color: #475569 !important;
+          }
+
+          .result-row span:last-child {
+            font-size: 11pt !important;
+            font-weight: 600 !important;
+            color: #0f172a !important;
+          }
+
+          /* Hide empty placeholder text */
+          input::placeholder {
+            color: transparent !important;
+          }
+
+          /* Reduce spacing */
+          .space-y-6 > * {
+            margin-bottom: 14pt !important;
+          }
+
+          .grid.gap-4 {
+            gap: 8pt !important;
+          }
+
+          .grid.gap-3 {
+            gap: 5pt !important;
+          }
+
+          /* Typography fine-tuning */
           h1 {
-            font-size: 22px !important;
-            margin-bottom: 6px !important;
+            font-size: 18pt !important;
+            margin-bottom: 4pt !important;
           }
 
           p {
-            font-size: 12px !important;
+            font-size: 10pt !important;
           }
 
           .font-mono {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
-            font-size: 12px !important;
           }
 
-          /* Force all sections onto one page when possible */
-          .print-wrapper {
-            display: block !important;
-            page-break-before: avoid;
-            page-break-inside: avoid;
+          /* Avoid awkward page breaks */
+          .print-wrapper,
+          [data-slot="card"],
+          .result-row {
+            page-break-inside: avoid !important;
+          }
+        }
+
+        @media screen {
+          .print-only {
+            display: none !important;
           }
         }
       `}</style>
