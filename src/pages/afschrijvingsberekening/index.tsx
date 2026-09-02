@@ -125,7 +125,154 @@ function DepreciationPage() {
       </Head>
       <AppShell>
         <div className="mx-auto max-w-5xl print-wrapper">
-          {/* Print-only document header */}
+          <style jsx global>{`
+            @media print {
+              @page {
+                size: A4 portrait;
+                margin: 15mm;
+              }
+
+              html,
+              body {
+                background: white !important;
+                color: black !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+
+              .app-shell-root > *:not(.app-shell-content),
+              .app-shell-sidebar,
+              .app-shell-header,
+              .app-shell-menu-button,
+              .app-shell-sheet,
+              aside,
+              header,
+              nav,
+              .screen-only,
+              button,
+              [role="button"],
+              a[href],
+              a,
+              [role="link"],
+              [href],
+              [data-radix-popper-content-wrapper],
+              [data-state="open"],
+              .ToastViewport,
+              [role="dialog"],
+              .sheet,
+              .sheet-content,
+              .radix-dialog,
+              .radix-portal {
+                display: none !important;
+              }
+
+              .container-fleet,
+              main {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: white !important;
+              }
+
+              [data-slot="card"] {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                margin-bottom: 16px;
+              }
+
+              [data-slot="card-header"] {
+                padding-bottom: 12px !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+              }
+
+              [data-slot="card-title"] {
+                font-size: 14px !important;
+                font-weight: 700 !important;
+              }
+
+              [data-slot="card-description"] {
+                display: none !important;
+              }
+
+              .result-row {
+                break-inside: avoid;
+                border: 1px solid #e2e8f0 !important;
+                background: white !important;
+                padding: 10px 12px !important;
+                margin-bottom: 6px !important;
+                border-radius: 4px !important;
+              }
+
+              .result-row-highlight {
+                background: #f1f5f9 !important;
+                border: 1px solid #94a3b8 !important;
+              }
+
+              .print-document-header {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                margin-bottom: 24pt !important;
+                padding-bottom: 12pt !important;
+                border-bottom: 1.5pt solid #1e293b !important;
+              }
+
+              .print-logo-image {
+                width: auto !important;
+                height: 44pt !important;
+                max-width: 170pt !important;
+                object-fit: contain !important;
+              }
+
+              .print-document-meta {
+                text-align: right !important;
+              }
+
+              .print-document-title {
+                font-size: 16pt !important;
+                font-weight: 700 !important;
+                color: #1e293b !important;
+              }
+
+              .print-document-date {
+                font-size: 9pt !important;
+                color: #475569 !important;
+                margin-top: 4pt !important;
+              }
+
+              .font-mono {
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+                font-size: 12px !important;
+              }
+            }
+          `}</style>
+
+          <style jsx>{`
+            .print-document-header {
+              display: none;
+            }
+            @media screen {
+              .print-only {
+                display: none;
+              }
+              .screen-only {
+                display: inline-flex;
+              }
+            }
+            @media print {
+              .print-only {
+                display: block;
+              }
+              .print-document-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              }
+            }
+          `}</style>
+
           <div className="print-only print-document-header">
             <div className="print-logo-container">
               <Image
@@ -154,7 +301,6 @@ function DepreciationPage() {
             </div>
           </div>
 
-          {/* Screen-only title */}
           <div className="screen-only mb-6">
             <h1 className="font-display text-2xl font-bold tracking-tight">Depreciation calculation</h1>
             <p className="text-sm text-muted-foreground">
@@ -337,22 +483,3 @@ function ResultRow({
 }
 
 export default withAuth(DepreciationPage);
-
-a[href],
-link,
-[role="link"],
-a,
-.link,
-[href],
-[href^="/"],
-[href^="http"],
-[data-radix-popper-content-wrapper],
-[data-state="open"],
-.ToastViewport,
-[role="dialog"],
-.sheet,
-.sheet-content,
-.radix-dialog,
-.radix-portal {
-  display: none !important;
-}
