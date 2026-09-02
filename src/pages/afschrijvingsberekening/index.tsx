@@ -272,7 +272,7 @@ function DepreciationPage() {
               }
 
               .berekening-card {
-                margin-top: 48pt !important;
+                margin-top: 96pt !important;
               }
 
               .font-mono {
