@@ -492,6 +492,19 @@ function DepreciationPage() {
               </div>
             </div>
           </div>
+
+          <div className="print-only print-document-footer">
+            {new Date().toLocaleDateString("nl-NL", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
+            {" · "}
+            {new Date().toLocaleTimeString("nl-NL", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
         </div>
       </AppShell>
     </>
