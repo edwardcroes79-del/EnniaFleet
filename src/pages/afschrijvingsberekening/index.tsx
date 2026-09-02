@@ -125,19 +125,26 @@ function DepreciationPage() {
             <Image
               src="/Ennia_logo.png"
               alt="ENNIA"
-              width={120}
-              height={50}
+              width={160}
+              height={66}
               className="print-logo-image"
               priority
             />
           </div>
-          <div className="print-document-title">Depreciation calculation</div>
-          <div className="print-document-date">
-            {new Date().toLocaleDateString("nl-NL", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
+          <div className="print-document-meta">
+            <div className="print-document-title">Depreciation calculation</div>
+            <div className="print-document-date">
+              {new Date().toLocaleDateString("nl-NL", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })}
+              {" · "}
+              {new Date().toLocaleTimeString("nl-NL", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </div>
           </div>
         </div>
 
@@ -332,6 +339,9 @@ function DepreciationPage() {
           header,
           nav,
           .screen-only,
+          a[href],
+          link,
+          [role="link"],
           [data-radix-popper-content-wrapper],
           [data-state="open"],
           .ToastViewport,
@@ -382,7 +392,6 @@ function DepreciationPage() {
           .print-document-header {
             display: flex !important;
             align-items: center !important;
-            justify-content: space-between !important;
             margin-bottom: 24pt !important;
             padding-bottom: 12pt !important;
             border-bottom: 1.5pt solid #1e293b !important;
@@ -395,22 +404,24 @@ function DepreciationPage() {
 
           .print-logo-image {
             width: auto !important;
-            height: 36pt !important;
-            max-width: 140pt !important;
+            height: 44pt !important;
+            max-width: 170pt !important;
             object-fit: contain !important;
+          }
+
+          .print-document-meta {
+            text-align: right !important;
           }
 
           .print-document-title {
             font-size: 16pt !important;
             font-weight: 700 !important;
             color: #1e293b !important;
-            text-align: right !important;
           }
 
           .print-document-date {
             font-size: 9pt !important;
             color: #475569 !important;
-            text-align: right !important;
             margin-top: 4pt !important;
           }
 
