@@ -260,6 +260,17 @@ function DepreciationPage() {
                 color: #475569 !important;
               }
 
+              .print-layout-grid {
+                display: block !important;
+              }
+
+              .print-avoid-break {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                -webkit-column-break-inside: avoid !important;
+                margin-bottom: 24pt !important;
+              }
+
               .font-mono {
                 font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
                 font-size: 12px !important;
@@ -314,9 +325,9 @@ function DepreciationPage() {
             </p>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-2 print-layout-grid">
             <div className="space-y-6">
-              <Card>
+              <Card className="print-avoid-break">
                 <CardHeader>
                   <CardTitle className="text-base">Gegevens auto</CardTitle>
                   <CardDescription>Voer de voertuiggegevens handmatig in.</CardDescription>
@@ -366,7 +377,7 @@ function DepreciationPage() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="print-avoid-break">
                 <CardHeader>
                   <CardTitle className="text-base">Afschrijvingsperiode</CardTitle>
                   <CardDescription>Ingangsdatum en vervangingsdatum van de afschrijving.</CardDescription>
@@ -405,7 +416,7 @@ function DepreciationPage() {
             </div>
 
             <div className="space-y-6">
-              <Card>
+              <Card className="print-avoid-break">
                 <CardHeader>
                   <CardTitle className="text-base">Berekening</CardTitle>
                   <CardDescription>Resultaten worden automatisch bijgewerkt.</CardDescription>
