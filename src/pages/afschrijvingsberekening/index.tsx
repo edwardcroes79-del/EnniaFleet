@@ -271,6 +271,18 @@ function DepreciationPage() {
                 margin-bottom: 24pt !important;
               }
 
+              .berekening-block {
+                break-before: page !important;
+                page-break-before: always !important;
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+              }
+
+              .print-page2-spacer {
+                display: block !important;
+                height: 35mm !important;
+              }
+
               .berekening-card {
                 margin-top: 140pt !important;
               }
@@ -303,6 +315,9 @@ function DepreciationPage() {
                 align-items: center;
                 justify-content: space-between;
               }
+            }
+            .print-page2-spacer {
+              display: none;
             }
           `}</style>
 
@@ -420,72 +435,62 @@ function DepreciationPage() {
             </div>
 
             <div className="space-y-6">
-              <Card className="print-avoid-break berekening-card">
-                <CardHeader>
-                  <CardTitle className="text-base">Berekening</CardTitle>
-                  <CardDescription>Resultaten worden automatisch bijgewerkt.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                  {calculation.errors.length > 0 && (
-                    <Alert variant="destructive">
-                      <AlertDescription>
-                        <ul className="list-disc space-y-1 pl-4">
-                          {calculation.errors.map((err, i) => (
-                            <li key={i}>{err}</li>
-                          ))}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
-                  )}
+              <div className="berekening-block">
+                <div className="print-page2-spacer" aria-hidden="true" />
+                <Card className="print-avoid-break">
+                  <CardHeader>
+                    <CardTitle className="text-base">Berekening</CardTitle>
+                    <CardDescription>Resultaten worden automatisch bijgewerkt.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-4">
+                    {calculation.errors.length > 0 && (
+                      <Alert variant="destructive">
+                        <AlertDescription>
+                          <ul className="list-disc space-y-1 pl-4">
+                            {calculation.errors.map((err, i) => (
+                              <li key={i}>{err}</li>
+                            ))}
+                          </ul>
+                        </AlertDescription>
+                      </Alert>
+                    )}
 
-                  <div className="grid gap-3">
-                    <ResultRow
-                      label="Totale maanden"
-                      value={showResults ? `${calculation.totalMonths}` : "—"}
-                    />
-                    <ResultRow
-                      label="Restwaarde"
-                      value={formatCurrency(calculation.residualValue)}
-                    />
-                    <ResultRow
-                      label="Afschrijvingskosten 60 mnd"
-                      value={formatCurrency(calculation.depreciation60)}
-                    />
-                    <ResultRow
-                      label="Afschrijvingskosten p/m"
-                      value={formatCurrency(calculation.depreciationPerMonth)}
-                    />
-                    <ResultRow
-                      label="Additionele afschrijvingkosten"
-                      value={formatCurrency(calculation.additionalDepreciation)}
-                    />
-                    <ResultRow
-                      label="Totale afschrijving"
-                      value={formatCurrency(calculation.totalDepreciation)}
-                      highlight
-                    />
-                    <ResultRow
-                      label="Restwaarde/Boekwaarde"
-                      value={formatCurrency(calculation.bookValue)}
-                      highlight
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+                    <div className="grid gap-3">
+                      <ResultRow
+                        label="Totale maanden"
+                        value={showResults ? `${calculation.totalMonths}` : "—"}
+                      />
+                      <ResultRow
+                        label="Restwaarde"
+                        value={formatCurrency(calculation.residualValue)}
+                      />
+                      <ResultRow
+                        label="Afschrijvingskosten 60 mnd"
+                        value={formatCurrency(calculation.depreciation60)}
+                      />
+                      <ResultRow
+                        label="Afschrijvingskosten p/m"
+                        value={formatCurrency(calculation.depreciationPerMonth)}
+                      />
+                      <ResultRow
+                        label="Additionele afschrijvingkosten"
+                        value={formatCurrency(calculation.additionalDepreciation)}
+                      />
+                      <ResultRow
+                        label="Totale afschrijving"
+                        value={formatCurrency(calculation.totalDepreciation)}
+                        highlight
+                      />
+                      <ResultRow
+                        label="Restwaarde/Boekwaarde"
+                        value={formatCurrency(calculation.bookValue)}
+                        highlight
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </div>
-
-          <div className="print-only print-document-footer">
-            {new Date().toLocaleDateString("nl-NL", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
-            {" · "}
-            {new Date().toLocaleTimeString("nl-NL", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
           </div>
         </div>
       </AppShell>
