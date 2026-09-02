@@ -271,6 +271,10 @@ function DepreciationPage() {
                 margin-bottom: 24pt !important;
               }
 
+              .berekening-card {
+                margin-top: 48pt !important;
+              }
+
               .font-mono {
                 font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
                 font-size: 12px !important;
@@ -416,7 +420,7 @@ function DepreciationPage() {
             </div>
 
             <div className="space-y-6">
-              <Card className="print-avoid-break">
+              <Card className="print-avoid-break berekening-card">
                 <CardHeader>
                   <CardTitle className="text-base">Berekening</CardTitle>
                   <CardDescription>Resultaten worden automatisch bijgewerkt.</CardDescription>
