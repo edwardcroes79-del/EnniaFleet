@@ -129,7 +129,7 @@ function DepreciationPage() {
             @media print {
               @page {
                 size: A4 portrait;
-                margin: 15mm;
+                margin: 0mm;
               }
 
               html,
@@ -162,7 +162,10 @@ function DepreciationPage() {
               .sheet,
               .sheet-content,
               .radix-dialog,
-              .radix-portal {
+              .radix-portal,
+              #vercel-live-toolbar,
+              vercel-live-toolbar,
+              nextjs-portal {
                 display: none !important;
               }
 
@@ -173,6 +176,12 @@ function DepreciationPage() {
                 padding: 0 !important;
                 margin: 0 !important;
                 background: white !important;
+              }
+
+              .print-wrapper {
+                padding: 15mm !important;
+                min-height: 100vh !important;
+                box-sizing: border-box !important;
               }
 
               [data-slot="card"] {
@@ -242,6 +251,15 @@ function DepreciationPage() {
                 margin-top: 4pt !important;
               }
 
+              .print-document-footer {
+                margin-top: 40pt !important;
+                padding-top: 12pt !important;
+                border-top: 1.5pt solid #e2e8f0 !important;
+                text-align: right !important;
+                font-size: 9pt !important;
+                color: #475569 !important;
+              }
+
               .font-mono {
                 font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
                 font-size: 12px !important;
@@ -286,18 +304,6 @@ function DepreciationPage() {
             </div>
             <div className="print-document-meta">
               <div className="print-document-title">Depreciation calculation</div>
-              <div className="print-document-date">
-                {new Date().toLocaleDateString("nl-NL", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })}
-                {" · "}
-                {new Date().toLocaleTimeString("nl-NL", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </div>
             </div>
           </div>
 
@@ -452,6 +458,19 @@ function DepreciationPage() {
                 </CardContent>
               </Card>
             </div>
+          </div>
+
+          <div className="print-only print-document-footer">
+            {new Date().toLocaleDateString("nl-NL", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
+            {" · "}
+            {new Date().toLocaleTimeString("nl-NL", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </div>
         </div>
       </AppShell>
